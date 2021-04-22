@@ -1,6 +1,30 @@
-from fcc import pth
+from fcc import pth, erpth
 
+print("\n# P_th (part of Table 1, FCC 19-126 p.23)\n")
 for f in [0.3, 0.45, 0.835]:
     for d in [0.5, 1, 1.5, 2]:
         print(round(pth(d,f), 1), end='\t')
     print()
+
+print("\n\n# ERP_th\n")
+#erpth(0.01, 144)
+#erpth(0.01, 239)
+print(erpth(1, 239))
+print(erpth(1, 239))
+print(erpth(3, 100))
+print(erpth(3, 50))
+#erpth(3, 0.1)
+#erpth(30000, 0.1)
+#erpth(30000, 101000)
+print(erpth(30000, 10000))
+print(erpth(3, 10000))
+print(erpth(3, 20))
+#erpth(3, 1)
+#erpth(4, 1)
+#erpth(5, 1)
+#erpth(6, 1)
+print(erpth(50, 1))
+print(erpth(50, 100))
+print(erpth(50, 420))
+print(erpth(50, 2000))
+print()

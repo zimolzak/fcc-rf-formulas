@@ -12,8 +12,6 @@ Two user-facing functions: `pth(distance, frequency)` and
 FCC released a report in 2019. The rule changes go into effect on May
 3, 2021.
 
-test: $x = 1$
-
 
 ## Links/references
 

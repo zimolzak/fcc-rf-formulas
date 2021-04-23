@@ -3,9 +3,6 @@
 Python implementation of the FCC's formulas for human exposure to
 radiofrequency electromagnetic fields.
 
-There are two user-facing functions: `pth(distance, frequency)` and
-`erpth(distance, frequency)`.
-
 
 ## Examples
 

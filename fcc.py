@@ -1,4 +1,4 @@
-from math import log10, sqrt, pi
+import math
 
 def pth(d,f):
     """Calculate time-averaged power threshold for exemption, for radio
@@ -18,7 +18,7 @@ def pth(d,f):
         erp20 = 3060
     else:
         raise Exception('frequency out of range: ' + str(f) + ' GHz')
-    x = -1 * log10(60 / (erp20 * sqrt(f)))
+    x = -1 * math.log10(60 / (erp20 * math.sqrt(f)))
     if d <= 20:
         P_threshold = erp20 * (d / 20) ** x
     elif 20 < d <= 40:
@@ -38,10 +38,11 @@ FUNCTIONS = [f1, f2, f3, f4, f5]
 
 def erpth(d,f):
     """ d in meters, f in MHz, return val in watts. """
+
     c = 299792458    # m/s
     nu = f * 1E6     # Hz
     lambd = c / nu  # m
-    L2p = lambd / (2 * pi)
+    L2p = lambd / (2 * math.pi)
     if d < L2p:
         print('R=' + str(d) + ', L/(2pi) = ' + str(round(L2p, 2)) + 'm')
         raise Exception('R < L/(2pi), therefore RF evaluation required.')

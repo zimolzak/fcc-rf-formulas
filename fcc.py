@@ -18,14 +18,14 @@ def exempt_milliwatts_sar(cm, ghz):
     elif 1.5 <= ghz <= 6:
         erp20 = 3060
     else:
-        raise ValueError('frequency out of range: ' + str(ghz) + ' GHz')
+        raise ValueError("frequency out of range: %s GHz" % str(ghz))
     x = -1 * math.log10(60 / (erp20 * math.sqrt(ghz)))
     if cm <= 20:
         p_threshold = erp20 * (cm / 20) ** x
     elif 20 < cm <= 40:
         p_threshold = erp20
     else:
-        raise ValueError('distance out of range: ' + str(cm) + ' cm')
+        raise ValueError("distance out of range: %s cm" % str(cm))
     return p_threshold
 
 
@@ -51,15 +51,15 @@ def exempt_watts_mpe(meters, mhz):
     functions = [f1, f2, f3, f4, f5]
     c = 299792458  # m/s
     nu = mhz * 1E6  # Hz
-    lambd = c / nu  # m
-    if meters < lambd / (2 * math.pi):
-        print('R=' + str(meters) + ', L/(2pi) = ' + str(round(L2p, 2)) + 'm')
-        raise ValueError('R < L/(2pi), therefore RF evaluation required.')
+    l_over_2pi = c / nu / (2 * math.pi)  # m
+    if meters < l_over_2pi :
+        l_str = str(round(l_over_2pi))
+        raise ValueError("R < L/2pi (%s < %s m). RF evaluation required." % (str(meters), l_str))
     for i in range(len(cutpoints)):
         if i == len(cutpoints) - 1:
-            raise ValueError("f = " + str(mhz) + ' MHz is not in my table.')
+            raise ValueError("frequency out of range: %s MHz" % str(mhz))
         f_low = cutpoints[i]
         f_high = cutpoints[i + 1]
         if f_low <= mhz < f_high:
             return functions[i](mhz, meters)
-    raise ValueError('Reached end; freq not in table: ' + str(mhz) + ' MHz')
+    raise ValueError("Reached end; frequency out of range: %s MHz" % str(mhz))

@@ -34,6 +34,7 @@ def test_all_sar():
         print()
     print(result_list)
     assert result_list == reference
+    assert fcc_round(exempt_milliwatts_sar(40, 1.8)) == 3060
 
 def t_erpth(d, f):
     erp = exempt_watts_mpe(d, f)

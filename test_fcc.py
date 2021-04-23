@@ -1,4 +1,4 @@
-from fcc import pth, erpth
+from fcc import exempt_milliwatts_sar, exempt_watts_mpe
 
 def fcc_round(x):
     """Round as in FCC 19-126 Table 1, p. 23."""
@@ -22,7 +22,7 @@ def test_all_sar():
     # reference is derived directly from FCC 19-126, Table 1.
     for f in [0.3, 0.45, 0.835]: # First 3 rows of Table 1
         for d in [0.5, 1, 1.5, 2]: # First 4 columns
-            result = pth(d,f)
+            result = exempt_milliwatts_sar(d, f)
             printme = round(result, 1)
             compare = fcc_round(result)
             print(printme, end='\t')
@@ -32,7 +32,7 @@ def test_all_sar():
     assert result_list == reference
 
 def t_erpth(d, f):
-    erp = erpth(d, f)
+    erp = exempt_watts_mpe(d, f)
     print("%.0f m, %.0f MHz:\t%.1f W" % (d, f, erp))
 
 def test_all_erp():

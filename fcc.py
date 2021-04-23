@@ -1,7 +1,7 @@
 import math
 
 
-def pth(d, f):
+def exempt_milliwatts_sar(cm, ghz):
     """Calculate time-averaged power threshold for exemption, for radio
     frequency sources. (Exemption from routine RF exposure
     evaluation.) Note, this is only for UHF and part of SHF. Not
@@ -10,26 +10,27 @@ def pth(d, f):
     lower frequencies, you need to look at MPE-based exemption with
     ERP threshold, not SAR-based.
 
-    d in cm, f in GHz. Return value in mW. Source: FCC 19-126 p.23
+    cm is the distance, ghz is the frequency. Return value in mW.
+    Source: FCC 19-126 p.23
     """
-    if 0.3 <= f < 1.5:
-        erp20 = 2040 * f
-    elif 1.5 <= f <= 6:
+    if 0.3 <= ghz < 1.5:
+        erp20 = 2040 * ghz
+    elif 1.5 <= ghz <= 6:
         erp20 = 3060
     else:
-        raise ValueError('frequency out of range: ' + str(f) + ' GHz')
-    x = -1 * math.log10(60 / (erp20 * math.sqrt(f)))
-    if d <= 20:
-        p_threshold = erp20 * (d / 20) ** x
-    elif 20 < d <= 40:
+        raise ValueError('frequency out of range: ' + str(ghz) + ' GHz')
+    x = -1 * math.log10(60 / (erp20 * math.sqrt(ghz)))
+    if cm <= 20:
+        p_threshold = erp20 * (cm / 20) ** x
+    elif 20 < cm <= 40:
         p_threshold = erp20
     else:
-        raise ValueError('distance out of range: ' + str(d) + ' cm')
+        raise ValueError('distance out of range: ' + str(cm) + ' cm')
     return p_threshold
 
 
-def erpth(d, f):
-    """ d in meters, f in MHz, return val in watts. """
+def exempt_watts_mpe(meters, mhz):
+    """meters is the distance, mhz is the frequency, return val in watts."""
     cutpoints = [0.3, 1.34, 30, 300, 1500, 100000]
 
     def f1(f, r):
@@ -49,16 +50,16 @@ def erpth(d, f):
 
     functions = [f1, f2, f3, f4, f5]
     c = 299792458  # m/s
-    nu = f * 1E6  # Hz
+    nu = mhz * 1E6  # Hz
     lambd = c / nu  # m
-    if d < lambd / (2 * math.pi):
-        print('R=' + str(d) + ', L/(2pi) = ' + str(round(L2p, 2)) + 'm')
+    if meters < lambd / (2 * math.pi):
+        print('R=' + str(meters) + ', L/(2pi) = ' + str(round(L2p, 2)) + 'm')
         raise ValueError('R < L/(2pi), therefore RF evaluation required.')
     for i in range(len(cutpoints)):
         if i == len(cutpoints) - 1:
-            raise ValueError("f = " + str(f) + ' MHz is not in my table.')
+            raise ValueError("f = " + str(mhz) + ' MHz is not in my table.')
         f_low = cutpoints[i]
         f_high = cutpoints[i + 1]
-        if f_low <= f < f_high:
-            return functions[i](f, d)
-    raise ValueError('Reached end; freq not in table: ' + str(f) + ' MHz')
+        if f_low <= mhz < f_high:
+            return functions[i](mhz, meters)
+    raise ValueError('Reached end; freq not in table: ' + str(mhz) + ' MHz')

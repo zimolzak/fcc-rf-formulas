@@ -35,7 +35,6 @@ def test_all_sar():
     print(result_list)
     assert result_list == reference
 
-
 def t_erpth(d, f):
     erp = exempt_watts_mpe(d, f)
     print("%.0f m, %.0f MHz:\t%.1f W" % (d, f, erp))
@@ -54,8 +53,7 @@ def test_all_erp():
     t_erpth(50, 100)
     t_erpth(50, 420)
     t_erpth(50, 2000)
-    t_erpth(30000, 10000)
-    print()
+    t_erpth(30000, 10000)  # 17 GW LOL, buy SEVERAL power plants
 
 
 def test_sar_exceptions():
@@ -96,5 +94,14 @@ def test_erp_exceptions():
 if __name__ == '__main__':
     print("\n# P_th (part of Table 1, FCC 19-126 p.23)\n")
     test_all_sar()
+    print("SAR function passed comparison to FCC published ref.")
+    test_sar_exceptions()
+    print("SAR exceptions passed.")
+
     print("\n\n# ERP_th\n")
     test_all_erp()
+    print("ERP/MPE exemption no exceptions; values not tested.")
+    test_erp_exceptions()
+    print("MPE ERP exceptions passed.")
+
+    print()

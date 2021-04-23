@@ -1,10 +1,35 @@
 from fcc import pth, erpth
 
+def fcc_round(x):
+    """Round as in FCC 19-126 Table 1, p. 23."""
+    if x < 10:
+        return(round(x, 1))
+    else:
+        return(int(round(x)))
+
+def test_fcc_round():
+    assert fcc_round(39.1234) == 39
+    assert fcc_round(22) == 22
+    assert fcc_round(22.0) == 22
+    assert fcc_round(2.1234) == 2.1
+    assert fcc_round(9.0) == 9.0
+    assert fcc_round(9.01234) == 9.0
+    assert fcc_round(3060.1234) == 3060
+
 def test_all_sar():
-    for f in [0.3, 0.45, 0.835]:
-        for d in [0.5, 1, 1.5, 2]:
-            print(round(pth(d,f), 1), end='\t')
+    result_list = []
+    reference = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
+    # reference is derived directly from FCC 19-126, Table 1.
+    for f in [0.3, 0.45, 0.835]: # First 3 rows of Table 1
+        for d in [0.5, 1, 1.5, 2]: # First 4 columns
+            result = pth(d,f)
+            printme = round(result, 1)
+            compare = fcc_round(result)
+            print(printme, end='\t')
+            result_list.append(compare)
         print()
+    print(result_list)
+    assert result_list == reference
 
 def t_erpth(d, f):
     erp = erpth(d, f)

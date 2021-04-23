@@ -17,14 +17,14 @@ def pth(d,f):
     elif 1.5 <= f <= 6:
         erp20 = 3060
     else:
-        raise Exception('frequency out of range: ' + str(f) + ' GHz')
+        raise ValueError('frequency out of range: ' + str(f) + ' GHz')
     x = -1 * math.log10(60 / (erp20 * math.sqrt(f)))
     if d <= 20:
         P_threshold = erp20 * (d / 20) ** x
     elif 20 < d <= 40:
         P_threshold = erp20
     else:
-        raise Exception('distance out of range: ' + str(d) + ' cm')
+        raise ValueError('distance out of range: ' + str(d) + ' cm')
     return(P_threshold)
 
 
@@ -43,12 +43,12 @@ def erpth(d,f):
     L2p = lambd / (2 * math.pi)
     if d < L2p:
         print('R=' + str(d) + ', L/(2pi) = ' + str(round(L2p, 2)) + 'm')
-        raise Exception('R < L/(2pi), therefore RF evaluation required.')
+        raise ValueError('R < L/(2pi), therefore RF evaluation required.')
     for i in range(len(cutpoints)):
         if i == len(cutpoints) - 1:
-            raise Exception("f = " + str(f) + ' MHz is not in my table.')
+            raise ValueError("f = " + str(f) + ' MHz is not in my table.')
         f_low = cutpoints[i]
         f_high = cutpoints[i + 1]
         if f_low <= f < f_high:
             return(functions[i](f, d))
-    raise Exception('Reached end; freq not in table: ' + str(f) + ' MHz')
+    raise ValueError('Reached end; freq not in table: ' + str(f) + ' MHz')

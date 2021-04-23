@@ -52,7 +52,7 @@ def exempt_watts_mpe(meters, mhz):
     c = 299792458  # m/s
     nu = mhz * 1E6  # Hz
     l_over_2pi = c / nu / (2 * math.pi)  # m
-    if meters < l_over_2pi :
+    if meters < l_over_2pi:
         l_str = str(round(l_over_2pi))
         raise ValueError("R < L/2pi (%s < %s m). RF evaluation required." % (str(meters), l_str))
     for i in range(len(cutpoints)):

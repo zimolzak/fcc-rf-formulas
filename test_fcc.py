@@ -1,3 +1,4 @@
+import pytest
 from fcc import exempt_milliwatts_sar, exempt_watts_mpe
 
 
@@ -41,26 +42,55 @@ def t_erpth(d, f):
 
 
 def test_all_erp():
-    # erpth(0.01, 144)
-    # erpth(0.01, 239)
+    """We are not (yet) asserting return vals. No external FCC ref
+    available.
+    """
     t_erpth(1, 239)
-    # erpth(3, 0.1)
-    # erpth(3, 1)
     t_erpth(3, 20)
     t_erpth(3, 50)
     t_erpth(3, 100)
     t_erpth(3, 10000)
-    # erpth(4, 1)
-    # erpth(5, 1)
-    # erpth(6, 1)
     t_erpth(50, 1)
     t_erpth(50, 100)
     t_erpth(50, 420)
     t_erpth(50, 2000)
-    # erpth(30000, 0.1)
     t_erpth(30000, 10000)
-    # erpth(30000, 101000)
     print()
+
+
+def test_sar_exceptions():
+    # d 0 - 40
+    # freq 0.3 - 6
+    with pytest.raises(ValueError):
+        exempt_milliwatts_sar(41, 1)    # d high
+    with pytest.raises(ValueError):
+        exempt_milliwatts_sar(20, 0.1)  # f low
+    with pytest.raises(ValueError):
+        exempt_milliwatts_sar(20, 7)    # f high
+    with pytest.raises(ValueError):
+        exempt_milliwatts_sar(99, 99)   # both high
+
+
+def test_erp_exceptions():
+    # all are R < L/2pi except as noted
+    with pytest.raises(ValueError):
+        t_erpth(0.01, 144)
+    with pytest.raises(ValueError):
+        t_erpth(0.01, 239)
+    with pytest.raises(ValueError):
+        t_erpth(3, 0.1)
+    with pytest.raises(ValueError):
+        t_erpth(3, 1)
+    with pytest.raises(ValueError):
+        t_erpth(4, 1)
+    with pytest.raises(ValueError):
+        t_erpth(5, 1)
+    with pytest.raises(ValueError):
+        t_erpth(6, 1)
+    with pytest.raises(ValueError):
+        t_erpth(30000, 0.1)  # freq 0.1 MHz too low
+    with pytest.raises(ValueError):
+        t_erpth(30000, 101000)  # freq 101000 too high
 
 
 if __name__ == '__main__':

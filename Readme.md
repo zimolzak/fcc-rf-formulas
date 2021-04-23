@@ -52,6 +52,10 @@ https://docs.fcc.gov/public/attachments/FCC-19-126A1.pdf
 
 http://www.arrl.org/news/updated-radio-frequency-exposure-rules-become-effective-on-may-3
 
+Hare, Ed (W1RFI). *RF Exposure and You.* 1st ed., American Radio Relay
+League, 1998-2003. This is a perfectly lovely book.
+http://www.arrl.org/files/file/Technology/RFsafetyCommittee/RF+Exposure+and+You.pdf
+
 
 ## Abbreviations/definitions
 
@@ -72,10 +76,14 @@ http://www.arrl.org/news/updated-radio-frequency-exposure-rules-become-effective
 - Exemption: when you *don't* have to do an RF exposure evaluation.
   There are 3 ways to be exempt (1 mW, SAR-based, and MPE-based).
 
-- Evaluation: ensuring "that the exposure limits are not exceeded in
-  places that are accessible to people. In the great majority of
-  cases, such an evaluation is simple and generic and does not require
-  a determination of the precise exposure level..."
+- Evaluation: means ensuring "that the exposure limits are not
+  exceeded in places that are accessible to people. In the great
+  majority of cases, such an evaluation is simple and generic and does
+  not require a determination of the precise exposure level..."
+  (FCC p. 34). Per Ed Hare, "A routine evaluation is not nearly
+  as onerous as it sounds!" "Most evaluations will not involve
+  measurements," but will use charts, "straightforward calculations or
+  computer modeling..." (Hare, p. 4.8).
 
 - mobile: normally 20cm or more from a person, e.g. desktop PC wifi
 

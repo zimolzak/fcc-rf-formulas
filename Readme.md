@@ -10,26 +10,26 @@ There are two user-facing functions: `pth(distance, frequency)` and
 ## Examples
 
     >>> import fcc
-    >>> fcc.pth(1, 0.45)
+    >>> fcc.exempt_milliwatts_sar(1, 0.45)
     44.372516027834514
 
-`pth(distance, frequency)` implements threshold power (P_th) for
-SAR-based exemption (FCC 19-126, page 23). That means if you have a
-0.45 GHz (450 MHz) source, which is 1 cm away, you get a SAR-based
-exemption if "each of the maximum time-averaged power or maximum
-time-averaged ERP is no more than" **44.4 milliwatts.** This method of
-exemption only applies to UHF or higher, not VHF or HF.
+`exempt_milliwatts_sar(cm, ghz)` implements threshold power (P_th) for
+SAR-based exemption (FCC 19-126, page 23). This example says that if
+you have a 0.45 GHz (450 MHz) source, which is 1 cm away, you get a
+SAR-based exemption if "each of the maximum time-averaged power or
+maximum time-averaged ERP is no more than" **44.4 milliwatts.** This
+method of exemption only applies to UHF or higher, not VHF or HF.
 
     >>> import fcc
-    >>> fcc.erpth(1, 444)
+    >>> fcc.exempt_watts_mpe(1, 444)
     5.6832
 
-`erpth(distance, frequency)` implements the MPE-based exemption (FCC
-report p 26) and returns an effective radiated power threshold
+`fcc.exempt_watts_mpe(meters, mhz)` implements the MPE-based exemption
+(FCC report p. 26) and returns an effective radiated power threshold
 according to a formula. The example above means that a 444 MHz source
 which is 1 meter away is exempt if its ERP is no more than **5.7
 watts.** If the radiator is closer than a certain cutoff distance,
-"evaluation is required" (p 25, footnote 143). This method of
+"evaluation is required" (p. 25, footnote 143). This method of
 exemption works over a much broader range of frequencies.
 
 Mind your units! They are all different magnitudes of units between

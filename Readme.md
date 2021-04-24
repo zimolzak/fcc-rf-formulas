@@ -21,7 +21,7 @@ method of exemption only applies to UHF or higher, not VHF or HF.
     >>> fcc.exempt_watts_mpe(1, 444)
     5.6832
 
-`fcc.exempt_watts_mpe(meters, mhz)` implements the MPE-based exemption
+`exempt_watts_mpe(meters, mhz)` implements the MPE-based exemption
 (FCC report p. 26) and returns an effective radiated power threshold
 according to a formula. The example above means that a 444 MHz source
 which is 1 meter away is exempt if its ERP is no more than **5.7
@@ -32,7 +32,9 @@ exemption works over a much broader range of frequencies.
 Mind your units! They are all different magnitudes of units between
 these two functions.
 
-Run `python main.py` to do a test.
+Run `python test_fcc.py` to run some tests manually and see `print()`
+results (rather than more automated pytest and pytest-cov stuff like
+`pytest -v --cov`).
 
 
 ## Context

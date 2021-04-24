@@ -57,4 +57,3 @@ def exempt_watts_mpe(meters, mhz):
         f_high = cutpoints[i + 1]
         if f_low <= mhz < f_high:
             return functions[i](mhz, meters)
-    raise ValueError("Reached end; frequency out of range: %s MHz" % str(mhz))

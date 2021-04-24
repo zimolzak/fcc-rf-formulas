@@ -33,22 +33,13 @@ def exempt_watts_mpe(meters, mhz):
     """meters is the distance, mhz is the frequency, return val in watts."""
     cutpoints = [0.3, 1.34, 30, 300, 1500, 100000]
 
-    def f1(f, r):
-        return 1920 * r ** 2
-
-    def f2(f, r):
-        return 33450 * r ** 2 / f ** 2
-
-    def f3(f, r):
-        return 3.83 * r ** 2
-
-    def f4(f, r):
-        return 0.0128 * r ** 2 * f
-
-    def f5(f, r):
-        return 19.2 * r ** 2
-
+    f1 = lambda f, r : 1920 * r ** 2
+    f2 = lambda f, r : 33450 * r ** 2 / f ** 2
+    f3 = lambda f, r : 3.83 * r ** 2
+    f4 = lambda f, r : 0.0128 * r ** 2 * f
+    f5 = lambda f, r : 19.2 * r ** 2
     functions = [f1, f2, f3, f4, f5]
+
     c = 299792458  # m/s
     nu = mhz * 1E6  # Hz
     l_over_2pi = c / nu / (2 * math.pi)  # m

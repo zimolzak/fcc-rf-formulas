@@ -30,16 +30,20 @@ def exempt_milliwatts_sar(cm, ghz):
 
 
 def exempt_watts_mpe(meters, mhz):
-    """meters is the distance, mhz is the frequency, return val in watts."""
+    """Calculate the Effective Radiated Power threshold for exemption, for
+    radio frequency sources, using the MPE method. Formulas based on
+    FCC 19-126, Table 2, p. 26.
+
+    meters is the distance, mhz is the frequency, return val is in watts.
+    """
     cutpoints = [0.3, 1.34, 30, 300, 1500, 100000]
-
-    f1 = lambda f, r : 1920 * r ** 2
-    f2 = lambda f, r : 33450 * r ** 2 / f ** 2
-    f3 = lambda f, r : 3.83 * r ** 2
-    f4 = lambda f, r : 0.0128 * r ** 2 * f
-    f5 = lambda f, r : 19.2 * r ** 2
-    functions = [f1, f2, f3, f4, f5]
-
+    functions = [
+        (lambda f, r : 1920 * r ** 2),
+        (lambda f, r : 33450 * r ** 2 / f ** 2),  # How can that be? I don't know man, I didn't do it.
+        (lambda f, r : 3.83 * r ** 2),
+        (lambda f, r : 0.0128 * r ** 2 * f),
+        (lambda f, r : 19.2 * r ** 2)
+    ]
     c = 299792458  # m/s
     nu = mhz * 1E6  # Hz
     l_over_2pi = c / nu / (2 * math.pi)  # m

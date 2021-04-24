@@ -20,7 +20,7 @@ def exempt_milliwatts_sar(cm, ghz):
     else:
         raise ValueError("frequency out of range: %s GHz" % str(ghz))
     x = -1 * math.log10(60 / (erp20 * math.sqrt(ghz)))
-    if cm <= 20:
+    if 0 <= cm <= 20:
         p_threshold = erp20 * (cm / 20) ** x
     elif 20 < cm <= 40:
         p_threshold = erp20

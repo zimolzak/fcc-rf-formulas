@@ -59,8 +59,8 @@ def test_all_erp():
 
 
 def test_sar_exceptions():
-    # d 0 - 40
-    # freq 0.3 - 6
+    # d     0   - 40
+    # freq  0.3 -  6
     with pytest.raises(ValueError):
         exempt_milliwatts_sar(41, 1)    # d high
     with pytest.raises(ValueError):
@@ -69,6 +69,8 @@ def test_sar_exceptions():
         exempt_milliwatts_sar(20, 7)    # f high
     with pytest.raises(ValueError):
         exempt_milliwatts_sar(99, 99)   # both high
+    with pytest.raises(ValueError):
+        exempt_milliwatts_sar(-1, 0.4)  # neg distance
 
 
 def test_erp_exceptions():

@@ -36,9 +36,9 @@ exemption works over a much broader range of frequencies.
 ```python
 fcc.exempt_watts_generic(0.01, 450)
 # (0.04437251602783451, 'SAR')
-fcc.exempt_watts_generic(1,444)
+fcc.exempt_watts_generic(1, 444)
 # (5.6832, 'MPE')
-fcc.exempt_watts_generic(0.16,310)
+fcc.exempt_watts_generic(0.16, 310)
 # (0.5327389333009732, 'SAR wins')
 ```
 

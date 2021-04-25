@@ -20,7 +20,7 @@ def exempt_watts_generic(meters, mhz):
 def exempt_milliwatts_sar(cm, ghz):
     """Calculate time-averaged power threshold for exemption, for radio
     frequency sources. (Exemption from routine RF exposure
-    evaluation.) Note, this is only for UHF and part of SHF. Not
+    evaluation.) Note: this is only for UHF, and part of SHF. Not
     applicable to VHF, HF, and frequencies below. FCC formula is
     'based on localized specific absorption rate (SAR) limits.' For
     lower frequencies, you need to look at MPE-based exemption with
@@ -28,6 +28,7 @@ def exempt_milliwatts_sar(cm, ghz):
 
     cm is the distance, ghz is the frequency. Return value in mW.
     Source: FCC 19-126 p.23
+
     """
     if 0.3 <= ghz < 1.5:
         erp20 = 2040 * ghz

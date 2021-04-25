@@ -1,7 +1,8 @@
 # Formulas for RF Exposure
 
 Python implementation of the FCC's formulas for human exposure to
-radiofrequency electromagnetic fields.
+radiofrequency electromagnetic fields. FCC rule changes go into effect on May
+3, 2021.
 
 
 ## Examples
@@ -10,27 +11,36 @@ radiofrequency electromagnetic fields.
     >>> fcc.exempt_milliwatts_sar(1, 0.45)
     44.372516027834514
 
-`exempt_milliwatts_sar(cm, ghz)` implements threshold power (P_th) for
-SAR-based exemption (FCC 19-126, page 23). This example says that if
-you have a 0.45 GHz (450 MHz) source, which is 1 cm away, you get a
-SAR-based exemption if "each of the maximum time-averaged power or
-maximum time-averaged ERP is no more than" **44.4 milliwatts.** This
-method of exemption only applies to UHF or higher, not VHF or HF.
+This calculates threshold power (P_th) for SAR-based exemption (FCC
+19-126, page 23). This example says that if you have a 0.45 GHz (450
+MHz) source, which is 1 cm away, you get a SAR-based exemption if
+"each of the maximum time-averaged power or maximum time-averaged ERP
+is no more than" **44.4 milliwatts.** This method of exemption only
+applies to UHF or higher, not VHF or HF.
 
     >>> import fcc
     >>> fcc.exempt_watts_mpe(1, 444)
     5.6832
 
-`exempt_watts_mpe(meters, mhz)` implements the MPE-based exemption
-(FCC report p. 26) and returns an effective radiated power threshold
-according to a formula. The example above means that a 444 MHz source
+This calculates effective radiated power threshold for MPE-based
+exemption (FCC report p. 26). This example means that a 444 MHz source
 which is 1 meter away is exempt if its ERP is no more than **5.7
 watts.** If the radiator is closer than a certain cutoff distance,
 "evaluation is required" (p. 25, footnote 143). This method of
 exemption works over a much broader range of frequencies.
 
-Mind your units! They are all different magnitudes of units between
-these two functions.
+    >>> fcc.exempt_watts_generic(0.01, 450)
+    (0.04437251602783451, 'SAR')
+    >>> fcc.exempt_watts_generic(1,444)
+    (5.6832, 'MPE')
+    >>> fcc.exempt_watts_generic(0.16,310)
+    (0.5327389333009732, 'SAR wins')
+
+This calculates a power threshold by the most favorable method
+available.
+
+Mind your units! They may be different between function arguments and
+return values.
 
 Run `python test_fcc.py` to run some tests manually and see `print()`
 results (rather than more automated pytest and pytest-cov stuff like

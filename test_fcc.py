@@ -18,10 +18,41 @@ def test_generic():
         [50, 420],
         [50, 2000],
         [30000, 10000],
+        [41/100, 1 * 1000], # fails SAR
+        [20/100, 7 * 1000], # fails SAR
+        [99/100, 99 * 1000], # fails SAR
+        [0.398, 120], # 120 mhz no SAR. 39.8 cm dist, 250 cm wavelength
+        [0.16, 310]  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
     ]
     for k, v in pairs:
         w, s = exempt_watts_generic(k, v)
         print(str(round(w, 3)) + " W, " + str(s))
+
+
+def test_generic_exceptions():
+    with pytest.raises(ValueError):
+        exempt_watts_generic(20/100, 0.1 * 1000)
+    with pytest.raises(ValueError):
+        exempt_watts_generic(-1/100, 0.4 * 1000)
+    # these are copy/pasted
+    with pytest.raises(ValueError):
+        exempt_watts_generic(0.01, 144)
+    with pytest.raises(ValueError):
+        exempt_watts_generic(0.01, 239)
+    with pytest.raises(ValueError):
+        exempt_watts_generic(3, 0.1)
+    with pytest.raises(ValueError):
+        exempt_watts_generic(3, 1)
+    with pytest.raises(ValueError):
+        exempt_watts_generic(4, 1)
+    with pytest.raises(ValueError):
+        exempt_watts_generic(5, 1)
+    with pytest.raises(ValueError):
+        exempt_watts_generic(6, 1)
+    with pytest.raises(ValueError):
+        exempt_watts_generic(30000, 0.1)  # freq 0.1 MHz too low
+    with pytest.raises(ValueError):
+        exempt_watts_generic(30000, 101000)  # freq 101000 too high
 
 
 def fcc_round(x):
@@ -60,6 +91,7 @@ def test_all_sar():
 
 
 def t_erpth(d, f):
+    """This function is just used for printing"""
     erp = exempt_watts_mpe(d, f)
     print("%.0f m, %.0f MHz:\t%.1f W" % (d, f, erp))
 
@@ -133,5 +165,7 @@ if __name__ == '__main__':
     print("\n\n# Generic")
     test_generic()
     print("Generic no exceptions.")
+    test_generic_exceptions()
+    print("Generic exceptions passed.")
 
     print()

@@ -1,6 +1,22 @@
 import math
 
 
+def exempt_watts_generic(meters, mhz):
+    """Try SAR and MPE method, return best threshold and method."""
+    try:
+        p_th = exempt_milliwatts_sar(meters * 100, mhz / 1000) / 1000
+    except ValueError:
+        return (exempt_watts_mpe(meters, mhz), 'MPE')  # raises again if still out of range
+    try:
+        erp_th = exempt_watts_mpe(meters, mhz)
+    except ValueError:
+        return (p_th, 'SAR')
+    if p_th > erp_th:
+        return (p_th, 'SAR wins')
+    else:
+        return(erp_th, 'MPE wins')
+
+
 def exempt_milliwatts_sar(cm, ghz):
     """Calculate time-averaged power threshold for exemption, for radio
     frequency sources. (Exemption from routine RF exposure

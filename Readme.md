@@ -7,9 +7,11 @@ radiofrequency electromagnetic fields. FCC rule changes go into effect on May
 
 ## Examples
 
-    >>> import fcc
-    >>> fcc.exempt_milliwatts_sar(1, 0.45)
-    44.372516027834514
+```python
+import fcc
+fcc.exempt_milliwatts_sar(1, 0.45)
+# 44.372516027834514
+```
 
 This calculates threshold power (P_th) for SAR-based exemption (FCC
 19-126, page 23). This example says that if you have a 0.45 GHz (450
@@ -18,9 +20,11 @@ MHz) source, which is 1 cm away, you get a SAR-based exemption if
 is no more than" **44.4 milliwatts.** This method of exemption only
 applies to UHF or higher, not VHF or HF.
 
-    >>> import fcc
-    >>> fcc.exempt_watts_mpe(1, 444)
-    5.6832
+```python
+import fcc
+fcc.exempt_watts_mpe(1, 444)
+# 5.6832
+```
 
 This calculates effective radiated power threshold for MPE-based
 exemption (FCC report p. 26). This example means that a 444 MHz source
@@ -29,12 +33,14 @@ watts.** If the radiator is closer than a certain cutoff distance,
 "evaluation is required" (p. 25, footnote 143). This method of
 exemption works over a much broader range of frequencies.
 
-    >>> fcc.exempt_watts_generic(0.01, 450)
-    (0.04437251602783451, 'SAR')
-    >>> fcc.exempt_watts_generic(1,444)
-    (5.6832, 'MPE')
-    >>> fcc.exempt_watts_generic(0.16,310)
-    (0.5327389333009732, 'SAR wins')
+```python
+fcc.exempt_watts_generic(0.01, 450)
+# (0.04437251602783451, 'SAR')
+fcc.exempt_watts_generic(1,444)
+# (5.6832, 'MPE')
+fcc.exempt_watts_generic(0.16,310)
+# (0.5327389333009732, 'SAR wins')
+```
 
 This calculates a power threshold by the most favorable method
 available.

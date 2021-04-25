@@ -2,6 +2,7 @@ import math
 
 
 def exempt_watts_generic(meters, mhz):
+    """Try SAR and MPE method, return best threshold and method."""
     try:
         p_th = exempt_milliwatts_sar(meters * 100, mhz / 1000) / 1000
     except ValueError:

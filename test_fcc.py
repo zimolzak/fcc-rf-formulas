@@ -1,5 +1,27 @@
 import pytest
-from fcc import exempt_milliwatts_sar, exempt_watts_mpe
+from fcc import exempt_milliwatts_sar, exempt_watts_mpe, exempt_watts_generic
+
+
+def test_generic():
+    for ghz in [0.3, 0.45, 0.835]:
+        for cm in [0.5, 1, 1.5, 2]:
+            w, s = exempt_watts_generic(cm / 100, ghz * 1000)
+            print(str(round(w, 3)) + " W, " + str(s))
+    pairs = [
+        [1, 239],
+        [3, 20],
+        [3, 50],
+        [3, 100],
+        [3, 10000],
+        [50, 1],
+        [50, 100],
+        [50, 420],
+        [50, 2000],
+        [30000, 10000],
+    ]
+    for k, v in pairs:
+        w, s = exempt_watts_generic(k, v)
+        print(str(round(w, 3)) + " W, " + str(s))
 
 
 def fcc_round(x):
@@ -107,5 +129,9 @@ if __name__ == '__main__':
     print("ERP/MPE exemption no exceptions; values not tested.")
     test_erp_exceptions()
     print("MPE ERP exceptions passed.")
+
+    print("\n\n# Generic")
+    test_generic()
+    print("Generic no exceptions.")
 
     print()

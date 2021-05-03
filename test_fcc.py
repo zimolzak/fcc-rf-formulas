@@ -18,10 +18,10 @@ def test_generic():
         [50, 420],
         [50, 2000],
         [30000, 10000],
-        [41/100, 1 * 1000], # fails SAR
-        [20/100, 7 * 1000], # fails SAR
-        [99/100, 99 * 1000], # fails SAR
-        [0.398, 120], # 120 mhz no SAR. 39.8 cm dist, 250 cm wavelength
+        [41/100, 1 * 1000],   # fails SAR
+        [20/100, 7 * 1000],   # fails SAR
+        [99/100, 99 * 1000],  # fails SAR
+        [0.398, 120],  # 120 mhz no SAR. 39.8 cm dist, 250 cm wavelength
         [0.16, 310]  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
     ]
     for k, v in pairs:

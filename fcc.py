@@ -1,6 +1,28 @@
 import math
 
 
+def stds(f):
+# 510 IF F < 1.34 THEN STD1 = 100: STD2 = 100: GOTO 580
+# 520 IF F < 3 THEN STD1 = 100: STD2 = 180 / ((F) ^ 2)
+# 530 IF F < 30 THEN STD1 = 900 / ((F) ^ 2): STD2 = 180 / ((f) ** 2 )
+# 540 IF F < 300 THEN STD1 = 1: STD2 = .2: GOTO 580
+# 550 IF F < 1500 THEN STD1 = F / 300: STD2 = F / 1500:
+# 560 IF F < 100000! THEN STD1 = 5: STD2 = 1: GOTO 580
+    pass
+
+def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
+
+    """Adapted from orig public domain by Wayne Overbeck N6Nb, 1996-2021.
+    tavg and duty range 0 to 100. gain in dBi, f is freq in MHz, g is
+    'y' or 'n'.
+    """
+    watts = wattsorg * (tavg / 100)
+    watts = watts * (duty / 100)
+    pwr = 1000 * watts
+    eirp = pwer * (10 ** (gain / 10))
+    dx = ft * 30.48  # centimeters
+
+
 def mpe_power_density_mwcm2(mhz, controlled):
     """Max allowed MPE specified in mW/cm^2."""
     if type(controlled) != bool:

@@ -1,17 +1,31 @@
 import math
 
 
-def stds(f):
-# 510 IF F < 1.34 THEN STD1 = 100: STD2 = 100: GOTO 580
-# 520 IF F < 3 THEN STD1 = 100: STD2 = 180 / ((F) ^ 2)
-# 530 IF F < 30 THEN STD1 = 900 / ((F) ^ 2): STD2 = 180 / ((f) ** 2 )
-# 540 IF F < 300 THEN STD1 = 1: STD2 = .2: GOTO 580
-# 550 IF F < 1500 THEN STD1 = F / 300: STD2 = F / 1500:
-# 560 IF F < 100000! THEN STD1 = 5: STD2 = 1: GOTO 580
-    pass
+def stds(f):  # fixme - how does this relate to mpe_power_density_mwcm2
+    if f < 1.34:
+        return [100, 100]
+    elif f < 3:
+        return [100, 180 / ((f) ** 2)]
+    elif f < 30:
+        return [900 / ((f) ** 2), 180 / ((f) ** 2 )]
+    elif f < 300:
+        return [1.0, 0.2]
+    elif f < 1500:
+        return [f / 300, f / 1500]
+    elif f < 100000:
+        return [5.0, 1.0]
+    else:
+        raise ValueError
+
+
+def transform_dx(gf, eirp, std1):
+    dx1 = math.sqrt((gf * eirp) / (std1 * math.pi))
+    dx1 = dx1 / 30.48
+    dx1 = (int((dx1 * 10) + 0.5)) / 10
+    return dx1
+
 
 def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
-
     """Adapted from orig public domain by Wayne Overbeck N6Nb, 1996-2021.
     tavg and duty range 0 to 100. gain in dBi, f is freq in MHz, g is
     'y' or 'n'.
@@ -19,8 +33,24 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
     watts = wattsorg * (tavg / 100)
     watts = watts * (duty / 100)
     pwr = 1000 * watts
-    eirp = pwer * (10 ** (gain / 10))
+    eirp = pwr * (10 ** (gain / 10))
     dx = ft * 30.48  # centimeters
+    std1, std2 = stds(f)
+    if g == "n":
+        gf = 0.25
+        gr = "without"
+    elif g == "y":
+        gf = 0.64
+        gr = "with"
+    else:
+        raise ValueError
+    pwrdens = gf * eirp / (math.pi * (dx ** 2))
+    pwrdens = (int((pwrdens * 10000) + 0.5)) / 10000  # your mW/cm2 at given dist
+    dx1 = transform_dx(gf, eirp, std1)  # compliant distances in feet
+    dx2 = transform_dx(gf, eirp, std2)
+    std1 = (int((std1 * 100) + 0.5)) / 100  # these are MPE limits mw/cm2
+    std2 = (int((std2 * 100) + 0.5)) / 100  # FIXME - this is really just rounding
+    return [pwrdens, dx1, dx2, std1, std2, gr]
 
 
 def mpe_power_density_mwcm2(mhz, controlled):

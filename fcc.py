@@ -56,7 +56,7 @@ def exempt_watts_mpe(meters, mhz):
     cutpoints = [0.3, 1.34, 30, 300, 1500, 100000]
     functions = [
         (lambda f, r: 1920 * r ** 2),
-        (lambda f, r: 33450 * r ** 2 / f ** 2),  # How can that be? I don't know man, I didn't do it.
+        (lambda f, r: 3450 * r ** 2 / f ** 2),
         (lambda f, r: 3.83 * r ** 2),
         (lambda f, r: 0.0128 * r ** 2 * f),
         (lambda f, r: 19.2 * r ** 2)

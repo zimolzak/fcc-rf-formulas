@@ -1,5 +1,6 @@
 import pytest
 from fcc import exempt_milliwatts_sar, exempt_watts_mpe, exempt_watts_generic, stds
+import fcc
 
 
 def test_stds():
@@ -177,3 +178,8 @@ if __name__ == '__main__':
     print("Generic exceptions passed.")
 
     print()
+
+    for i in range(10, 500):
+        print(i, end=' ')
+        print(fcc.mpe_power_density_mwcm2(i, True), end=' ')
+        print(fcc.stds(i)[0])

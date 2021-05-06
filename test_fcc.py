@@ -1,5 +1,13 @@
 import pytest
-from fcc import exempt_milliwatts_sar, exempt_watts_mpe, exempt_watts_generic
+from fcc import exempt_milliwatts_sar, exempt_watts_mpe, exempt_watts_generic, stds
+
+
+def test_stds():
+    with pytest.raises(ValueError):
+        stds(101000)
+    assert stds(1.2) == [100,100]
+    assert stds(40) == [1, 0.2]
+    assert stds(3000) == [5,1]
 
 
 def test_generic():

@@ -1,12 +1,12 @@
 import math
 
 
-def stds(f):  # fixme - how does this relate to mpe_power_density_mwcm2
+def stds(f):
     """Seems to return MPE limit mW/cm^2 for controlled & uncontrolled
     environments, respectively. As a function of frequency in MHz.
     """
     if f < 1.34:  # fixme - probably should be <= 1.34 else you get 100.2
-        return [100, 100]
+        return [100, 100] # fixme - 0 MHz or less raise error
     elif f < 3:
         return [100, 180 / ((f) ** 2)]
     elif f < 30:
@@ -76,7 +76,7 @@ def mpe_power_density_mwcm2(mhz, controlled):
         elif 1500 < mhz <= 100000:
             return 5.0
         else:
-            raise ValueError("frequency out of range: %s \MHz" % str(mhz))
+            raise ValueError("frequency out of range: %s MHz" % str(mhz))
     else:
         if 10 <= mhz <= 300:
             return 0.2
@@ -85,7 +85,7 @@ def mpe_power_density_mwcm2(mhz, controlled):
         elif 1500 < mhz <= 100000:
             return 1.0
         else:
-            raise ValueError("frequency out of range: %s \MHz" % str(mhz))
+            raise ValueError("frequency out of range: %s MHz" % str(mhz))
 
 
 def exempt_watts_generic(meters, mhz):

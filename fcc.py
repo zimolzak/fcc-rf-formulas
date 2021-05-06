@@ -2,7 +2,10 @@ import math
 
 
 def stds(f):  # fixme - how does this relate to mpe_power_density_mwcm2
-    if f < 1.34:
+    """Seems to return MPE limit mW/cm^2 for controlled & uncontrolled
+    environments, respectively. As a function of frequency in MHz.
+    """
+    if f < 1.34:  # fixme - probably should be <= 1.34 else you get 100.2
         return [100, 100]
     elif f < 3:
         return [100, 180 / ((f) ** 2)]
@@ -19,9 +22,13 @@ def stds(f):  # fixme - how does this relate to mpe_power_density_mwcm2
 
 
 def transform_dx(gf, eirp, std1):
+    """Calculates compliant distance (ft) as function of effective
+    radiated power (mW) as well as MPE limit and GF which includes
+    ground reflection.
+    """
     dx1 = math.sqrt((gf * eirp) / (std1 * math.pi))
     dx1 = dx1 / 30.48
-    dx1 = (int((dx1 * 10) + 0.5)) / 10
+#    dx1 = (int((dx1 * 10) + 0.5)) / 10
     return dx1
 
 
@@ -29,6 +36,8 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
     """Adapted from orig public domain by Wayne Overbeck N6Nb, 1996-2021.
     tavg and duty range 0 to 100. gain in dBi, f is freq in MHz, g is
     'y' or 'n'.
+
+    Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF.
     """
     watts = wattsorg * (tavg / 100)
     watts = watts * (duty / 100)
@@ -54,7 +63,9 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
 
 
 def mpe_power_density_mwcm2(mhz, controlled):
-    """Max allowed MPE specified in mW/cm^2."""
+    """Max allowed MPE specified in mW/cm^2. I do not think this is
+    complete.
+    """
     if type(controlled) != bool:
         raise ValueError("value of 'controlled' must be boolean: %s" % str(controlled))
     if controlled:

@@ -11,7 +11,7 @@ def mpe_limits_cont_uncont_mwcm2(mhz):
     environments, respectively. As a function of frequency in MHz.
     """
     if mhz <= 0:
-        raise ValueError
+        raise ValueError("frequency out of range: %s MHz" % str(mhz))
     elif mhz <= 1.34:
         return [100, 100]
     elif mhz < 3:
@@ -25,7 +25,7 @@ def mpe_limits_cont_uncont_mwcm2(mhz):
     elif mhz < 100000:
         return [5.0, 1.0]
     else:
-        raise ValueError
+        raise ValueError("frequency out of range: %s MHz" % str(mhz))
 
 
 def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
@@ -39,7 +39,7 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
 
 def reflection_constant(ground_reflections):
     if type(ground_reflections) != bool:
-        raise ValueError
+        raise ValueError("ground_reflections must be boolean: %s" % str(ground_reflections))
     if not ground_reflections:
         return 1
     else:
@@ -53,7 +53,7 @@ def effective_isotropic_radiated_power(watts, t_average, duty, dbi):
     but SSB radiates only when you speak).
     """
     if not (0 <= t_average <= 100 and 0 <= duty <= 100):
-        raise ValueError
+        raise ValueError("t_average / duty out of range: %s / %s" % (str(t_average), str(duty)))
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
     return milliwatts_average * (10 ** (dbi / 10))
 

@@ -1,34 +1,34 @@
 import math
 
 
-def stds(f):
+def mpe_limits_cont_uncont_mwcm2(mhz):
     """Seems to return MPE limit mW/cm^2 for controlled & uncontrolled
     environments, respectively. As a function of frequency in MHz.
     """
-    if f <= 0:
+    if mhz <= 0:
         raise ValueError
-    elif f <= 1.34:
+    elif mhz <= 1.34:
         return [100, 100]
-    elif f < 3:
-        return [100, 180 / ((f) ** 2)]
-    elif f < 30:
-        return [900 / ((f) ** 2), 180 / ((f) ** 2)]
-    elif f < 300:
+    elif mhz < 3:
+        return [100, 180 / ((mhz) ** 2)]
+    elif mhz < 30:
+        return [900 / ((mhz) ** 2), 180 / ((mhz) ** 2)]
+    elif mhz < 300:
         return [1.0, 0.2]
-    elif f < 1500:
-        return [f / 300, f / 1500]
-    elif f < 100000:
+    elif mhz < 1500:
+        return [mhz / 300, mhz / 1500]
+    elif mhz < 100000:
         return [5.0, 1.0]
     else:
         raise ValueError
 
 
-def transform_dx(gf, eirp, std1):
+def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     """Calculates compliant distance (ft) as function of effective
     radiated power (mW) as well as MPE limit and GF which includes
     ground reflection.
     """
-    dx1 = math.sqrt((gf * eirp) / (std1 * math.pi))
+    dx1 = math.sqrt((gf * eirp_mw) / (mpe_limit_mwcm2 * math.pi))
     # r = sqrt(ERP / (4 pi density))
     dx1 = dx1 / 30.48
 #    dx1 = (int((dx1 * 10) + 0.5)) / 10
@@ -47,20 +47,20 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
     pwr = 1000 * watts  # P_avg (mW)
     eirp = pwr * (10 ** (gain / 10))  # ERP = P_avg * G
     dx = ft * 30.48  # centimeters
-    std1, std2 = stds(f)  # these are MPE limits mw/cm2
+    std1, std2 = mpe_limits_cont_uncont_mwcm2(f)  # these are MPE limits mw/cm2
     if g == "n":
-        gf = 0.25
+        gf = 0.25  # rational number 1/4
         gr = "without"
     elif g == "y":
-        gf = 0.64
+        gf = 0.64  # maybe 2/pi ?
         gr = "with"
     else:
         raise ValueError
     pwrdens = gf * eirp / (math.pi * (dx ** 2))  # your mW/cm2 at given dist
     # dens = ERP / (4 pi r^2)
     # pwrdens = (int((pwrdens * 10000) + 0.5)) / 10000
-    dx1 = transform_dx(gf, eirp, std1)  # compliant distances in feet
-    dx2 = transform_dx(gf, eirp, std2)
+    dx1 = compliant_distance_ft(gf, eirp, std1)  # compliant distances in feet
+    dx2 = compliant_distance_ft(gf, eirp, std2)
     # std1 = (int((std1 * 100) + 0.5)) / 100
     # std2 = (int((std2 * 100) + 0.5)) / 100
     return [pwrdens, dx1, dx2, std1, std2, gr]

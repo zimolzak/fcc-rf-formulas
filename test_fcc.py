@@ -5,10 +5,10 @@ import math
 
 def test_stds():
     with pytest.raises(ValueError):
-        fcc.stds(101000)
-    assert fcc.stds(1.2) == [100, 100]
-    assert fcc.stds(40) == [1, 0.2]
-    assert fcc.stds(3000) == [5, 1]
+        fcc.mpe_limits_cont_uncont_mwcm2(101000)
+    assert fcc.mpe_limits_cont_uncont_mwcm2(1.2) == [100, 100]
+    assert fcc.mpe_limits_cont_uncont_mwcm2(40) == [1, 0.2]
+    assert fcc.mpe_limits_cont_uncont_mwcm2(3000) == [5, 1]
 
 
 def test_density():

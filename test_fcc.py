@@ -164,25 +164,3 @@ def test_erp_exceptions():
         t_erpth(30000, 0.1)  # freq 0.1 MHz too low
     with pytest.raises(ValueError):
         t_erpth(30000, 101000)  # freq 101000 too high
-
-
-if __name__ == '__main__':
-    print("\n# P_th (part of Table 1, FCC 19-126 p.23)\n")
-    test_all_sar()
-    print("SAR function passed comparison to FCC published ref.")
-    test_sar_exceptions()
-    print("SAR exceptions passed.")
-
-    print("\n\n# ERP_th\n")
-    test_all_erp()
-    print("ERP/MPE exemption no exceptions; values not tested.")
-    test_erp_exceptions()
-    print("MPE ERP exceptions passed.")
-
-    print("\n\n# Generic")
-    test_generic()
-    print("Generic no exceptions.")
-    test_generic_exceptions()
-    print("Generic exceptions passed.")
-
-    print()

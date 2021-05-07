@@ -19,33 +19,48 @@ def test_mpe_limits():
 
 
 def test_density():
+    # first principles
     cm = 100
     feet = cm / 30.48
-    standard_density = 1000 / (4 * math.pi * (cm ** 2)) * 1000
-    calculated_density = fcc.power_density_mwcm2(1000, 100, 100, 0, feet, False)
+    watts = 1000
+    standard_density = watts / (4 * math.pi * (cm ** 2)) * 1000
+    calculated_density = fcc.power_density_mwcm2(watts * 1000, feet, False)
     assert standard_density == pytest.approx(calculated_density)
-    assert fcc.power_density_mwcm2(1, 100, 100, 2, 3 / 0.3048, True) == pytest.approx(0.0036, abs=1e-4)  # website
-    fcc.power_density_mwcm2(1000, 100, 100, 0, feet, True)  # throwaway
+    # web
+    e = fcc.effective_isotropic_radiated_power(1, 100, 100, 2)
+    assert fcc.power_density_mwcm2(e, 3 / 0.3048, True) == pytest.approx(0.0036, abs=1e-4)
+    # throwaway
+    fcc.power_density_mwcm2(1000, feet, True)
+    # exceptions
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, 100, 100, 0, feet, 'durrr')
+        fcc.power_density_mwcm2(1000, feet, 'durrr')
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, 100, 100, 0, feet, 'n')
+        fcc.power_density_mwcm2(1000, feet, 'n')
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, 100, 100, 0, feet, 'y')
+        fcc.power_density_mwcm2(1000, feet, 'y')
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, 100, 100, 0, feet, 42424242)
+        fcc.power_density_mwcm2(1000, feet, 42424242)
+
+
+def test_eirp():
+    for w in range(20):
+        assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 100, 100, 0)  # isotropic
+    for w in range(20):
+        assert w * 1000 * 10 == fcc.effective_isotropic_radiated_power(w, 100, 100, 10)  # 10 dB gain
+    for w in range(20):
+        assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 10, 10, 20)  # 20 dB, canceled by * 0.1 * 0.1
     with pytest.raises(TypeError):
-        fcc.power_density_mwcm2(1000, 's', 100, 0, feet, False)
+        fcc.effective_isotropic_radiated_power(1000, 's', 100, 0)
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, -3.1, 100, 0, feet, False)
+        fcc.effective_isotropic_radiated_power(1000, -3.1, 100, 0)
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, 110, 50, 0, feet, False)
+        fcc.effective_isotropic_radiated_power(1000, 110, 50, 0)
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, 100, 9999, 0, feet, False)
+        fcc.effective_isotropic_radiated_power(1000, 100, 9999, 0)
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, 100, -50, 0, feet, False)
+        fcc.effective_isotropic_radiated_power(1000, 100, -50, 0)
     with pytest.raises(ValueError):
-        fcc.power_density_mwcm2(1000, -42, -50, 0, feet, False)
+        fcc.effective_isotropic_radiated_power(1000, -42, -50, 0)
 
 
 def one_web(pwr, gain, meters, mhz, ground, expected):

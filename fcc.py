@@ -42,6 +42,11 @@ def reflection_constant(ground_reflections):
 
 
 def effective_isotropic_radiated_power(watts, t_average, duty, dbi):
+    """Return value in milliwatts. watts is power seen at antenna feedpoint (*after* feedline loss). t_average and
+    duty range 0 to 100. dbi is gain relative to isotropic. t_average is a characteristic of how much you operate (how
+    much you hold the PTT). Duty factor is a characteristic of the mode (FM is always radiating when PTT,
+    but SSB radiates only when you speak).
+    """
     if not (0 <= t_average <= 100 and 0 <= duty <= 100):
         raise ValueError
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
@@ -49,8 +54,11 @@ def effective_isotropic_radiated_power(watts, t_average, duty, dbi):
 
 
 def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
+    """Report on power density (mW/cm^2) given input power and distance; and on compliant distances (controlled &
+    uncontrolled environment) given input power.
+    """
     eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
-    s = power_density_mwcm2(watts, t_average, duty, dbi, ft, ground_reflections)
+    s = power_density_mwcm2(eirp, ft, ground_reflections)
     limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
     feet_controlled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_controlled)
     feet_uncontrolled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_uncontrolled)
@@ -65,23 +73,17 @@ def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflection
             "Compliant uncontrolled": compliant_uncontrolled}
 
 
-def power_density_mwcm2(watts, t_average, duty, dbi, ft, ground_reflections):
-    """Calculate power density (mW/cm^2) given input power and distance, and compliant distances (controlled &
+def power_density_mwcm2(eirp_mw, ft, ground_reflections):
+    """Calculate power density (mW/cm^2) given input power (mW) and distance, and compliant distances (controlled &
     uncontrolled environment) given input power.
-
-    watts is power seen at antenna feedpoint (after feedline loss). t_average and duty range 0 to 100. dbi is gain
-    relative to isotropic. ground_reflections is boolean. t_average is a characteristic of how much you operate. How
-    much do you hold the PTT. Duty factor is a characteristic of the mode (FM is always radiating when PTT,
-    but SSB radiates only when you speak).
 
     Adapted from original public domain BASIC by Wayne Overbeck N6NB, published 1996-2021. Compare to
     http://hintlink.com/power_density.htm by Paul Evans VP9KF. That page runs on public domain PHP by W4/VP9KF.
     Ultimate source is FCC OET Bulletin 65, Aug 1997.
     https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
     """
-    eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
     cm = ft * 30.48
-    power_density = reflection_constant(ground_reflections) * eirp / (4 * math.pi * (cm ** 2))  # your mW/cm^2 at given dist
+    power_density = reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * (cm ** 2))
     return power_density
 
 

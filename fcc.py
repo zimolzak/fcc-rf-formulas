@@ -20,7 +20,7 @@ def mpe_limits_cont_uncont_mwcm2(mhz):
     elif mhz < 100000:
         return [5.0, 1.0]
     else:
-        raise ValueError
+        raise ValueError  # fixme - better valueError documentation returns
 
 
 def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
@@ -29,7 +29,7 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     ground reflection.
     """
     centimeters = math.sqrt((gf * eirp_mw) / (mpe_limit_mwcm2 * math.pi))
-    # r = sqrt(ERP / (4 pi density))
+    # r = sqrt(EIRP / (4 pi density))
     return centimeters / 30.48
 
 
@@ -39,27 +39,29 @@ def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflectio
 
     Adapted from original public domain BASIC by Wayne Overbeck N6NB, 1996-2021. watts is power seen at antenna
     feedpoint (after feedline loss). t_average and duty range 0 to 100. dbi is gain relative to isotropic.
-    ground_reflections is boolean. Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF.
+    ground_reflections is boolean. Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF. t_average is
+    a characteristic of how much you operate. How much do you hold the PTT. Duty factor is a characteristic of the
+    mode (FM is always radiating when PPT, but SSB only when you speak). Ultimate source is FCC OET Bulletin 65,
+    Aug 1997. https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
     """
+    if not (0 <= t_average <= 100 and 0 <= duty <= 100):
+        raise ValueError
+    if type(ground_reflections) != bool:
+        raise ValueError
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
     eirp = milliwatts_average * (10 ** (dbi / 10))
     cm = ft * 30.48
     limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
-    if 0 <= t_average <= 100 and 0 <= duty <= 100:
-        pass
-    else:
-        raise ValueError
-    if type(ground_reflections) != bool:
-        raise ValueError
     if not ground_reflections:
-        gf = 0.25  # rational number 1/4
-    elif ground_reflections:
-        gf = 0.64  # maybe 2/pi ?
-    power_density = gf * eirp / (math.pi * (cm ** 2))  # your mW/cm^2 at given dist
-    # dens = ERP / (4 pi r^2)
-    feet_controlled = compliant_distance_ft(gf, eirp, limit_controlled)
-    feet_uncontrolled = compliant_distance_ft(gf, eirp, limit_uncontrolled)
-    return [power_density, feet_controlled, feet_uncontrolled]
+        reflection_constant = 1
+    else:
+        reflection_constant = 1.6 * 1.6  # source: OET #65 pp. 20-21. EPA 520/6-85-011.
+    power_density = reflection_constant * eirp / (4 * math.pi * (cm ** 2))  # your mW/cm^2 at given dist
+    feet_controlled = compliant_distance_ft(reflection_constant, eirp, limit_controlled)
+    feet_uncontrolled = compliant_distance_ft(reflection_constant, eirp, limit_uncontrolled)
+    compliant_controlled = power_density < limit_controlled
+    compliant_uncontrolled = power_density < limit_uncontrolled
+    return [power_density, feet_controlled, feet_uncontrolled, compliant_controlled, compliant_uncontrolled]
 
 
 def exempt_watts_generic(meters, mhz):

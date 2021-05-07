@@ -43,8 +43,8 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
     """
     watts = wattsorg * (tavg / 100)
     watts = watts * (duty / 100)
-    pwr = 1000 * watts
-    eirp = pwr * (10 ** (gain / 10))
+    pwr = 1000 * watts  # P_avg (mW)
+    eirp = pwr * (10 ** (gain / 10))  # ERP = P_avg * G
     dx = ft * 30.48  # centimeters
     std1, std2 = stds(f)  # these are MPE limits mw/cm2
     if g == "n":
@@ -56,6 +56,7 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
     else:
         raise ValueError
     pwrdens = gf * eirp / (math.pi * (dx ** 2))  # your mW/cm2 at given dist
+    # dens = ERP / (4 pi r^2)
     # pwrdens = (int((pwrdens * 10000) + 0.5)) / 10000
     dx1 = transform_dx(gf, eirp, std1)  # compliant distances in feet
     dx2 = transform_dx(gf, eirp, std2)

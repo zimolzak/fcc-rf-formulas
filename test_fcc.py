@@ -1,5 +1,6 @@
 import pytest
 import fcc
+import math
 
 
 def test_stds():
@@ -8,6 +9,14 @@ def test_stds():
     assert fcc.stds(1.2) == [100,100]
     assert fcc.stds(40) == [1, 0.2]
     assert fcc.stds(3000) == [5,1]
+
+
+def test_density():
+    cm = 100
+    feet = cm / 30.48
+    t = 1000 / (4 * math.pi * (cm ** 2)) * 1000
+    L = fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'n')
+    assert L[0] == t
 
 
 def test_generic():

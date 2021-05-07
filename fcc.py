@@ -10,9 +10,9 @@ def mpe_limits_cont_uncont_mwcm2(mhz):
     elif mhz <= 1.34:
         return [100, 100]
     elif mhz < 3:
-        return [100, 180 / ((mhz) ** 2)]
+        return [100, 180 / (mhz ** 2)]
     elif mhz < 30:
-        return [900 / ((mhz) ** 2), 180 / ((mhz) ** 2)]
+        return [900 / (mhz ** 2), 180 / (mhz ** 2)]
     elif mhz < 300:
         return [1.0, 0.2]
     elif mhz < 1500:
@@ -71,16 +71,16 @@ def exempt_watts_generic(meters, mhz):
     try:
         p_th = exempt_milliwatts_sar(meters * 100, mhz / 1000) / 1000
     except ValueError:
-        return (exempt_watts_mpe(meters, mhz), 'MPE')
+        return exempt_watts_mpe(meters, mhz), 'MPE'
         # That func will raise exception again if mhz still out of range.
     try:
         erp_th = exempt_watts_mpe(meters, mhz)
     except ValueError:
-        return (p_th, 'SAR')
+        return p_th, 'SAR'
     if p_th > erp_th:
-        return (p_th, 'SAR wins')
+        return p_th, 'SAR wins'
     else:
-        return(erp_th, 'MPE wins')
+        return erp_th, 'MPE wins'
 
 
 def exempt_milliwatts_sar(cm, ghz):

@@ -34,22 +34,27 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
 
 
 def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
-    """Adapted from original public domain BASIC by Wayne Overbeck N6NB, 1996-2021.
-    t_average and duty range 0 to 100. ground_reflections is
-    'y' or 'n'.
+    """Calculate power density (mW/cm^2) given input power and distance, and compliant distances (controlled &
+    uncontrolled environment) given input power.
 
-    Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF.
+    Adapted from original public domain BASIC by Wayne Overbeck N6NB, 1996-2021. watts is power seen at antenna
+    feedpoint (after feedline loss). t_average and duty range 0 to 100. dbi is gain relative to isotropic.
+    ground_reflections is boolean. Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF.
     """
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
     eirp = milliwatts_average * (10 ** (dbi / 10))
     cm = ft * 30.48
     limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
-    if ground_reflections == "n":
-        gf = 0.25  # rational number 1/4
-    elif ground_reflections == "y":
-        gf = 0.64  # maybe 2/pi ?
+    if 0 <= t_average <= 100 and 0 <= duty <= 100:
+        pass
     else:
         raise ValueError
+    if type(ground_reflections) != bool:
+        raise ValueError
+    if not ground_reflections:
+        gf = 0.25  # rational number 1/4
+    elif ground_reflections:
+        gf = 0.64  # maybe 2/pi ?
     power_density = gf * eirp / (math.pi * (cm ** 2))  # your mW/cm^2 at given dist
     # dens = ERP / (4 pi r^2)
     feet_controlled = compliant_distance_ft(gf, eirp, limit_controlled)

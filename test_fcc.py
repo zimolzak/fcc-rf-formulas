@@ -22,13 +22,15 @@ def test_density():
     cm = 100
     feet = cm / 30.48
     t = 1000 / (4 * math.pi * (cm ** 2)) * 1000
-    L = fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'n')
+    L = fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, False)
     assert L[0] == t
-    fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'y')
+    fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, True)
     with pytest.raises(ValueError):
         fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'durrr')
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, False)
+        fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'n')
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'y')
     with pytest.raises(ValueError):
         fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 42424242)
 

@@ -29,6 +29,7 @@ def transform_dx(gf, eirp, std1):
     ground reflection.
     """
     dx1 = math.sqrt((gf * eirp) / (std1 * math.pi))
+    # r = sqrt(ERP / (4 pi density))
     dx1 = dx1 / 30.48
 #    dx1 = (int((dx1 * 10) + 0.5)) / 10
     return dx1

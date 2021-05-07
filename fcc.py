@@ -66,32 +66,6 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
     return [pwrdens, dx1, dx2, std1, std2, gr]
 
 
-def mpe_power_density_mwcm2(mhz, controlled):
-    """Max allowed MPE specified in mW/cm^2. I do not think this is
-    complete.
-    """
-    if type(controlled) != bool:
-        raise ValueError("value of 'controlled' must be boolean: %s" % str(controlled))
-    if controlled:
-        if 10 <= mhz <= 300:
-            return 1.0
-        elif 300 < mhz <= 1500:
-            return mhz / 300
-        elif 1500 < mhz <= 100000:
-            return 5.0
-        else:
-            raise ValueError("frequency out of range: %s MHz" % str(mhz))
-    else:
-        if 10 <= mhz <= 300:
-            return 0.2
-        elif 300 < mhz <= 1500:
-            return mhz / 1500
-        elif 1500 < mhz <= 100000:
-            return 1.0
-        else:
-            raise ValueError("frequency out of range: %s MHz" % str(mhz))
-
-
 def exempt_watts_generic(meters, mhz):
     """Try SAR and MPE method, return best threshold and method."""
     try:

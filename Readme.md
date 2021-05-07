@@ -45,12 +45,22 @@ fcc.exempt_watts_generic(0.16, 310)
 This calculates a power threshold by the most favorable method
 available.
 
-Mind your units! They may be different between function arguments and
-return values.
+```python
+fcc.rf_evaluation_report(60, 50, 20, 2.2, 6, 29, True)
+# {'Power density': 0.06065253059459946,
+#  'MPE controlled': 1.070154577883472,
+#  'MPE uncontrolled': 0.2140309155766944,
+#  'Distance controlled': 1.428408600226954,
+#  'Distance uncontrolled': 3.194018729752791,
+#  'Compliant controlled': True,
+#  'Compliant uncontrolled': True}
+```
 
-Run `python test_fcc.py` to run some tests manually and see `print()`
-results (rather than more automated pytest and pytest-cov stuff like
-`pytest -v --cov`).
+The function arguments mean (in order): 60 W at feedpoint, 50% usage, a mode with 20% duty (like SSB), 2.2 dBi gain
+(like a dipole), distance of 6 feet from antenna, 29 MHz, and with ground reflection.
+
+Mind your units! They may be different between some function arguments and
+return values.
 
 
 ## Context

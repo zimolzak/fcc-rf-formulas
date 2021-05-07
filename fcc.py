@@ -51,8 +51,8 @@ def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflection
     limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
     feet_controlled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_controlled)
     feet_uncontrolled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_uncontrolled)
-    compliant_controlled = eirp < limit_controlled
-    compliant_uncontrolled = eirp < limit_uncontrolled
+    compliant_controlled = s < limit_controlled
+    compliant_uncontrolled = s < limit_uncontrolled
     return {"Power density": s,
             "MPE controlled": limit_controlled,
             "MPE uncontrolled": limit_uncontrolled,

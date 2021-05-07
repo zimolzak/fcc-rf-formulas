@@ -28,8 +28,7 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     radiated power (mW) as well as MPE limit and GF which includes
     ground reflection.
     """
-    centimeters = math.sqrt((gf * eirp_mw) / (mpe_limit_mwcm2 * math.pi))
-    # r = sqrt(EIRP / (4 pi density))
+    centimeters = math.sqrt(gf * eirp_mw / (4 * math.pi * mpe_limit_mwcm2))  # fixme - doublecheck. write tests.
     return centimeters / 30.48
 
 
@@ -37,12 +36,15 @@ def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflectio
     """Calculate power density (mW/cm^2) given input power and distance, and compliant distances (controlled &
     uncontrolled environment) given input power.
 
-    Adapted from original public domain BASIC by Wayne Overbeck N6NB, 1996-2021. watts is power seen at antenna
-    feedpoint (after feedline loss). t_average and duty range 0 to 100. dbi is gain relative to isotropic.
-    ground_reflections is boolean. Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF. t_average is
-    a characteristic of how much you operate. How much do you hold the PTT. Duty factor is a characteristic of the
-    mode (FM is always radiating when PPT, but SSB only when you speak). Ultimate source is FCC OET Bulletin 65,
-    Aug 1997. https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
+    watts is power seen at antenna feedpoint (after feedline loss). t_average and duty range 0 to 100. dbi is gain
+    relative to isotropic. ground_reflections is boolean. t_average is a characteristic of how much you operate. How
+    much do you hold the PTT. Duty factor is a characteristic of the mode (FM is always radiating when PPT,
+    but SSB only when you speak).
+
+    Adapted from original public domain BASIC by Wayne Overbeck N6NB, published 1996-2021. Compare to
+    http://hintlink.com/power_density.htm by Paul Evans VP9KF. That page runs on public domain PHP by W4/VP9KF.
+    Ultimate source is FCC OET Bulletin 65, Aug 1997.
+    https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
     """
     if not (0 <= t_average <= 100 and 0 <= duty <= 100):
         raise ValueError
@@ -51,13 +53,13 @@ def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflectio
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
     eirp = milliwatts_average * (10 ** (dbi / 10))
     cm = ft * 30.48
-    limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
+    limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2 # fixme - put in different func.
     if not ground_reflections:
         reflection_constant = 1
     else:
         reflection_constant = 1.6 * 1.6  # source: OET #65 pp. 20-21. EPA 520/6-85-011.
     power_density = reflection_constant * eirp / (4 * math.pi * (cm ** 2))  # your mW/cm^2 at given dist
-    feet_controlled = compliant_distance_ft(reflection_constant, eirp, limit_controlled)
+    feet_controlled = compliant_distance_ft(reflection_constant, eirp, limit_controlled)  # fixme - put in different func.
     feet_uncontrolled = compliant_distance_ft(reflection_constant, eirp, limit_uncontrolled)
     compliant_controlled = power_density < limit_controlled
     compliant_uncontrolled = power_density < limit_uncontrolled

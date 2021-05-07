@@ -6,9 +6,17 @@ import math
 def test_stds():
     with pytest.raises(ValueError):
         fcc.mpe_limits_cont_uncont_mwcm2(101000)
+    with pytest.raises(ValueError):
+        fcc.mpe_limits_cont_uncont_mwcm2(0)
+    with pytest.raises(ValueError):
+        fcc.mpe_limits_cont_uncont_mwcm2(-12.34)
+    # Non-exceptions, some assert, some throwaway
     assert fcc.mpe_limits_cont_uncont_mwcm2(1.2) == [100, 100]
+    fcc.mpe_limits_cont_uncont_mwcm2(2)
+    fcc.mpe_limits_cont_uncont_mwcm2(15)
     assert fcc.mpe_limits_cont_uncont_mwcm2(40) == [1, 0.2]
     assert fcc.mpe_limits_cont_uncont_mwcm2(3000) == [5, 1]
+
 
 
 def test_density():
@@ -17,6 +25,13 @@ def test_density():
     t = 1000 / (4 * math.pi * (cm ** 2)) * 1000
     L = fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'n')
     assert L[0] == t
+    fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'y')
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'durrr')
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, False)
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 42424242)
 
 
 def test_generic():

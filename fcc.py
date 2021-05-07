@@ -2,7 +2,7 @@ import math
 
 
 def mpe_limits_cont_uncont_mwcm2(mhz):
-    """Seems to return MPE limit mW/cm^2 for controlled & uncontrolled
+    """Calculate MPE limit mW/cm^2 for controlled & uncontrolled
     environments, respectively. As a function of frequency in MHz.
     """
     if mhz <= 0:
@@ -24,7 +24,7 @@ def mpe_limits_cont_uncont_mwcm2(mhz):
 
 
 def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
-    """Calculates compliant distance (ft) as function of effective
+    """Calculate compliant distance (ft) as function of effective
     radiated power (mW) as well as MPE limit and GF which includes
     ground reflection.
     """
@@ -35,23 +35,21 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     return dx1
 
 
-def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
+def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
     """Adapted from orig public domain by Wayne Overbeck N6Nb, 1996-2021.
     tavg and duty range 0 to 100. gain in dBi, f is freq in MHz, g is
     'y' or 'n'.
 
     Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF.
     """
-    watts = wattsorg * (tavg / 100)
-    watts = watts * (duty / 100)
-    pwr = 1000 * watts  # P_avg (mW)
-    eirp = pwr * (10 ** (gain / 10))  # ERP = P_avg * G
+    milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
+    eirp = milliwatts_average * (10 ** (dbi / 10))  # ERP = P_avg * G
     dx = ft * 30.48  # centimeters
-    std1, std2 = mpe_limits_cont_uncont_mwcm2(f)  # these are MPE limits mw/cm2
-    if g == "n":
+    std1, std2 = mpe_limits_cont_uncont_mwcm2(mhz)  # these are MPE limits mw/cm2
+    if ground_reflections == "n":
         gf = 0.25  # rational number 1/4
         gr = "without"
-    elif g == "y":
+    elif ground_reflections == "y":
         gf = 0.64  # maybe 2/pi ?
         gr = "with"
     else:
@@ -113,7 +111,7 @@ def exempt_milliwatts_sar(cm, ghz):
 
 
 def exempt_watts_mpe(meters, mhz):
-    """Calculate the Effective Radiated Power threshold for exemption, for
+    """Calculate the effective radiated power threshold for exemption, for
     radio frequency sources, using the MPE method. Formulas based on
     FCC 19-126, Table 2, p. 26.
 

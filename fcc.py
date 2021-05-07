@@ -28,16 +28,14 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     radiated power (mW) as well as MPE limit and GF which includes
     ground reflection.
     """
-    dx1 = math.sqrt((gf * eirp_mw) / (mpe_limit_mwcm2 * math.pi))
+    centimeters = math.sqrt((gf * eirp_mw) / (mpe_limit_mwcm2 * math.pi))
     # r = sqrt(ERP / (4 pi density))
-    dx1 = dx1 / 30.48
-#    dx1 = (int((dx1 * 10) + 0.5)) / 10
-    return dx1
+    return centimeters / 30.48
 
 
 def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
-    """Adapted from orig public domain by Wayne Overbeck N6Nb, 1996-2021.
-    tavg and duty range 0 to 100. gain in dBi, f is freq in MHz, g is
+    """Adapted from original public domain BASIC by Wayne Overbeck N6NB, 1996-2021.
+    t_average and duty range 0 to 100. ground_reflections is
     'y' or 'n'.
 
     Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF.
@@ -48,20 +46,15 @@ def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflectio
     limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
     if ground_reflections == "n":
         gf = 0.25  # rational number 1/4
-        gr = "without"
     elif ground_reflections == "y":
         gf = 0.64  # maybe 2/pi ?
-        gr = "with"
     else:
         raise ValueError
-    pwrdens = gf * eirp / (math.pi * (cm ** 2))  # your mW/cm^2 at given dist
+    power_density = gf * eirp / (math.pi * (cm ** 2))  # your mW/cm^2 at given dist
     # dens = ERP / (4 pi r^2)
-    # pwrdens = (int((pwrdens * 10000) + 0.5)) / 10000
     feet_controlled = compliant_distance_ft(gf, eirp, limit_controlled)
     feet_uncontrolled = compliant_distance_ft(gf, eirp, limit_uncontrolled)
-    # limit_controlled = (int((limit_controlled * 100) + 0.5)) / 100
-    # limit_uncontrolled = (int((limit_uncontrolled * 100) + 0.5)) / 100
-    return [pwrdens, feet_controlled, feet_uncontrolled, limit_controlled, limit_uncontrolled, gr]
+    return [power_density, feet_controlled, feet_uncontrolled]
 
 
 def exempt_watts_generic(meters, mhz):

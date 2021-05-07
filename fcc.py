@@ -41,13 +41,16 @@ def reflection_constant(ground_reflections):
         return 1.6 * 1.6  # source: OET #65 pp. 20-21. EPA 520/6-85-011.
 
 
-def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
-
-    # fixme - duplicative code
+def effective_isotropic_radiated_power(watts, t_average, duty, dbi):
+    if not (0 <= t_average <= 100 and 0 <= duty <= 100):
+        raise ValueError
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
-    eirp = milliwatts_average * (10 ** (dbi / 10))
+    return milliwatts_average * (10 ** (dbi / 10))
 
-    s = power_density_antenna(watts, t_average, duty, dbi, ft, ground_reflections)
+
+def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
+    eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
+    s = power_density_mwcm2(watts, t_average, duty, dbi, ft, ground_reflections)
     limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
     feet_controlled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_controlled)
     feet_uncontrolled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_uncontrolled)
@@ -62,24 +65,21 @@ def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflection
             "Compliant uncontrolled": compliant_uncontrolled}
 
 
-def power_density_antenna(watts, t_average, duty, dbi, ft, ground_reflections):
+def power_density_mwcm2(watts, t_average, duty, dbi, ft, ground_reflections):
     """Calculate power density (mW/cm^2) given input power and distance, and compliant distances (controlled &
     uncontrolled environment) given input power.
 
     watts is power seen at antenna feedpoint (after feedline loss). t_average and duty range 0 to 100. dbi is gain
     relative to isotropic. ground_reflections is boolean. t_average is a characteristic of how much you operate. How
-    much do you hold the PTT. Duty factor is a characteristic of the mode (FM is always radiating when PPT,
-    but SSB only when you speak).
+    much do you hold the PTT. Duty factor is a characteristic of the mode (FM is always radiating when PTT,
+    but SSB radiates only when you speak).
 
     Adapted from original public domain BASIC by Wayne Overbeck N6NB, published 1996-2021. Compare to
     http://hintlink.com/power_density.htm by Paul Evans VP9KF. That page runs on public domain PHP by W4/VP9KF.
     Ultimate source is FCC OET Bulletin 65, Aug 1997.
     https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
     """
-    if not (0 <= t_average <= 100 and 0 <= duty <= 100):
-        raise ValueError
-    milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
-    eirp = milliwatts_average * (10 ** (dbi / 10))
+    eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
     cm = ft * 30.48
     power_density = reflection_constant(ground_reflections) * eirp / (4 * math.pi * (cm ** 2))  # your mW/cm^2 at given dist
     return power_density

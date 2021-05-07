@@ -3,6 +3,19 @@ import fcc
 import math
 
 
+def vp(pwr, dbi, meters, mhz, ground):
+    """Mimic inputs to the Paul Evans web calculator, for easy comparison."""
+    return fcc.rf_evaluation_report(pwr, 100, 100, dbi, meters / 0.3048, mhz, ground)
+
+
+KEYS_IN_ORDER = ["Power density",
+                 "MPE controlled",
+                 "MPE uncontrolled",
+                 "Distance controlled",
+                 "Distance uncontrolled",
+                 "Compliant controlled",
+                 "Compliant uncontrolled"]
+
 def test_stds():
     with pytest.raises(ValueError):
         fcc.mpe_limits_cont_uncont_mwcm2(101000)
@@ -22,30 +35,40 @@ def test_density():
     cm = 100
     feet = cm / 30.48
     standard_density = 1000 / (4 * math.pi * (cm ** 2)) * 1000
-    calculated_density = fcc.power_density_antenna(1000, 100, 100, 0, feet, False)
+    calculated_density = fcc.power_density_mwcm2(1000, 100, 100, 0, feet, False)
     assert standard_density == pytest.approx(calculated_density)
-    assert fcc.power_density_antenna(1, 100, 100, 2, 3/0.3048, True) == pytest.approx(0.0036, abs=1e-4)  # website
-    fcc.power_density_antenna(1000, 100, 100, 0, feet, True)  # throwaway
+    assert fcc.power_density_mwcm2(1, 100, 100, 2, 3 / 0.3048, True) == pytest.approx(0.0036, abs=1e-4)  # website
+    fcc.power_density_mwcm2(1000, 100, 100, 0, feet, True)  # throwaway
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, 100, 100, 0, feet, 'durrr')
+        fcc.power_density_mwcm2(1000, 100, 100, 0, feet, 'durrr')
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, 100, 100, 0, feet, 'n')
+        fcc.power_density_mwcm2(1000, 100, 100, 0, feet, 'n')
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, 100, 100, 0, feet, 'y')
+        fcc.power_density_mwcm2(1000, 100, 100, 0, feet, 'y')
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, 100, 100, 0, feet, 42424242)
+        fcc.power_density_mwcm2(1000, 100, 100, 0, feet, 42424242)
     with pytest.raises(TypeError):
-        fcc.power_density_antenna(1000, 's', 100, 0, feet, False)
+        fcc.power_density_mwcm2(1000, 's', 100, 0, feet, False)
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, -3.1, 100, 0, feet, False)
+        fcc.power_density_mwcm2(1000, -3.1, 100, 0, feet, False)
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, 110, 50, 0, feet, False)
+        fcc.power_density_mwcm2(1000, 110, 50, 0, feet, False)
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, 100, 9999, 0, feet, False)
+        fcc.power_density_mwcm2(1000, 100, 9999, 0, feet, False)
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, 100, -50, 0, feet, False)
+        fcc.power_density_mwcm2(1000, 100, -50, 0, feet, False)
     with pytest.raises(ValueError):
-        fcc.power_density_antenna(1000, -42, -50, 0, feet, False)
+        fcc.power_density_mwcm2(1000, -42, -50, 0, feet, False)
+
+
+def one_web(a,b,c,d,e, expected):
+    report = vp(a,b,c,d,e)
+    for i, k in enumerate(KEYS_IN_ORDER):
+        assert report[k] == pytest.approx(expected[i], rel=0.04)  # 4 percent is surprisingly high
+
+
+def test_web_many():
+    one_web(123, 2, 10, 420, True, [0.0398, 1.41, 0.29, 5.58, 12.41, True, True])
 
 
 def test_generic():
@@ -64,9 +87,9 @@ def test_generic():
         [50, 420],
         [50, 2000],
         [30000, 10000],
-        [41/100, 1 * 1000],   # fails SAR
-        [20/100, 7 * 1000],   # fails SAR
-        [99/100, 99 * 1000],  # fails SAR
+        [41 / 100, 1 * 1000],  # fails SAR
+        [20 / 100, 7 * 1000],  # fails SAR
+        [99 / 100, 99 * 1000],  # fails SAR
         [0.398, 120],  # 120 mhz no SAR. 39.8 cm dist, 250 cm wavelength
         [0.16, 310]  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
     ]
@@ -77,9 +100,9 @@ def test_generic():
 
 def test_generic_exceptions():
     with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(20/100, 0.1 * 1000)
+        fcc.exempt_watts_generic(20 / 100, 0.1 * 1000)
     with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(-1/100, 0.4 * 1000)
+        fcc.exempt_watts_generic(-1 / 100, 0.4 * 1000)
     # these are copy/pasted
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(0.01, 144)
@@ -162,13 +185,13 @@ def test_sar_exceptions():
     # d     0   - 40
     # freq  0.3 -  6
     with pytest.raises(ValueError):
-        fcc.exempt_milliwatts_sar(41, 1)    # d high
+        fcc.exempt_milliwatts_sar(41, 1)  # d high
     with pytest.raises(ValueError):
         fcc.exempt_milliwatts_sar(20, 0.1)  # f low
     with pytest.raises(ValueError):
-        fcc.exempt_milliwatts_sar(20, 7)    # f high
+        fcc.exempt_milliwatts_sar(20, 7)  # f high
     with pytest.raises(ValueError):
-        fcc.exempt_milliwatts_sar(99, 99)   # both high
+        fcc.exempt_milliwatts_sar(99, 99)  # both high
     with pytest.raises(ValueError):
         fcc.exempt_milliwatts_sar(-1, 0.4)  # neg distance
 

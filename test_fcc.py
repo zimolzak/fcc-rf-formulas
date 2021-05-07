@@ -21,9 +21,9 @@ def test_stds():
 def test_density():
     cm = 100
     feet = cm / 30.48
-    t = 1000 / (4 * math.pi * (cm ** 2)) * 1000
-    L = fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, False)
-    assert L[0] == t
+    standard_density = 1000 / (4 * math.pi * (cm ** 2)) * 1000
+    calculated_density = fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, False)
+    assert standard_density == pytest.approx(calculated_density)
     fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, True)
     with pytest.raises(ValueError):
         fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'durrr')

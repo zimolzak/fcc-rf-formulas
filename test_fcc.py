@@ -3,6 +3,20 @@ import fcc
 import math
 
 
+def test_inverses():
+    """distance = f(power, density)
+    density = f(power, distance)
+    """
+    n = 0
+    for feet in range(1, 300, 11):
+        for milliwatts in range(100, 1000 * 100, 1131):
+            density = fcc.power_density_mwcm2(milliwatts, feet, False)
+            calc_feet = fcc.compliant_distance_ft(1, milliwatts, density)
+            assert feet == pytest.approx(calc_feet)
+            n += 1
+    print("\nDid %d tests of inverses." % n)
+
+
 def test_mpe_limits():
     with pytest.raises(ValueError):
         fcc.mpe_limits_cont_uncont_mwcm2(101000)
@@ -43,11 +57,11 @@ def test_density():
 
 
 def test_eirp():
-    for w in range(20):
+    for w in range(1, 20):
         assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 100, 100, 0)  # isotropic
-    for w in range(20):
+    for w in range(1, 20):
         assert w * 1000 * 10 == fcc.effective_isotropic_radiated_power(w, 100, 100, 10)  # 10 dB gain
-    for w in range(20):
+    for w in range(1, 20):
         assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 10, 10, 20)  # 20 dB, canceled by * 0.1 * 0.1
     with pytest.raises(TypeError):
         fcc.effective_isotropic_radiated_power(1000, 's', 100, 0)

@@ -186,8 +186,3 @@ if __name__ == '__main__':
     print("Generic exceptions passed.")
 
     print()
-
-    for i in range(10, 500):
-        print(i, end=' ')
-        print(fcc.mpe_power_density_mwcm2(i, True), end=' ')
-        print(fcc.stds(i)[0])

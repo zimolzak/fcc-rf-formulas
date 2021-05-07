@@ -1,3 +1,8 @@
+# Adapted from original public domain BASIC by Wayne Overbeck N6NB, published 1996-2021. Compare to
+# http://hintlink.com/power_density.htm by Paul Evans VP9KF. That page runs on public domain PHP by W4/VP9KF.
+# Ultimate source is FCC OET Bulletin 65, Aug 1997.
+# https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
+
 import math
 
 
@@ -74,17 +79,9 @@ def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflection
 
 
 def power_density_mwcm2(eirp_mw, ft, ground_reflections):
-    """Calculate power density (mW/cm^2) given input power (mW) and distance, and compliant distances (controlled &
-    uncontrolled environment) given input power.
-
-    Adapted from original public domain BASIC by Wayne Overbeck N6NB, published 1996-2021. Compare to
-    http://hintlink.com/power_density.htm by Paul Evans VP9KF. That page runs on public domain PHP by W4/VP9KF.
-    Ultimate source is FCC OET Bulletin 65, Aug 1997.
-    https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
-    """
+    """Calculate power density (mW/cm^2) given input power (mW) and distance"""
     cm = ft * 30.48
-    power_density = reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * (cm ** 2))
-    return power_density
+    return reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * (cm ** 2))
 
 
 def exempt_watts_generic(meters, mhz):

@@ -63,7 +63,7 @@ def test_eirp():
         fcc.effective_isotropic_radiated_power(1000, -42, -50, 0)
 
 
-def one_web(pwr, gain, meters, mhz, ground, expected):
+def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
     keys_in_order = ["Power density",
                      "MPE controlled",
                      "MPE uncontrolled",
@@ -73,7 +73,7 @@ def one_web(pwr, gain, meters, mhz, ground, expected):
                      "Compliant uncontrolled"]
     report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / 0.3048, mhz, ground)
     for i, k in enumerate(keys_in_order):
-        assert report[k] == pytest.approx(expected[i], rel=0.05)  # 5 percent is surprisingly high
+        assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
 
 
 def test_web_many():
@@ -84,6 +84,7 @@ def test_web_many():
     one_web(200, 2.2, 2, 3.9, True, [1.6905, 59.18, 11.84, 1.16, 2.53, True, True])  # 80 m band
     one_web(1500, 2.2, 2, 3.9, True, [12.6784, 59.18, 11.84, 3.09, 6.84, True, False])  # 80 m, MOAR POWAR
     one_web(200, 2.2, 2, 10.110, True, [1.6905, 8.81, 1.77, 2.93, 6.48, True, True])  # 30 m
+    one_web(5, 2.2, 0.1, 145.170, False, [6.6033, 1.01, 0.21, 0.89, 1.94, False, False], 0.06)  # HT on 2m
 
 
 def test_generic():

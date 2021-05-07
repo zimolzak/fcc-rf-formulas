@@ -12,7 +12,7 @@ def stds(f):
     elif f < 3:
         return [100, 180 / ((f) ** 2)]
     elif f < 30:
-        return [900 / ((f) ** 2), 180 / ((f) ** 2 )]
+        return [900 / ((f) ** 2), 180 / ((f) ** 2)]
     elif f < 300:
         return [1.0, 0.2]
     elif f < 1500:
@@ -71,7 +71,8 @@ def exempt_watts_generic(meters, mhz):
     try:
         p_th = exempt_milliwatts_sar(meters * 100, mhz / 1000) / 1000
     except ValueError:
-        return (exempt_watts_mpe(meters, mhz), 'MPE')  # raises again if still out of range
+        return (exempt_watts_mpe(meters, mhz), 'MPE')
+        # That func will raise exception again if mhz still out of range.
     try:
         erp_th = exempt_watts_mpe(meters, mhz)
     except ValueError:
@@ -131,7 +132,8 @@ def exempt_watts_mpe(meters, mhz):
     l_over_2pi = c / nu / (2 * math.pi)  # m
     if meters < l_over_2pi:
         l_str = str(round(l_over_2pi))
-        raise ValueError("R < L/2pi (%s < %s m). RF evaluation required." % (str(meters), l_str))
+        evaluation_message = "R < L/2pi (%s < %s m). RF evaluation required."
+        raise ValueError(evaluation_message % (str(meters), l_str))
     for i in range(len(cutpoints)):
         if i == len(cutpoints) - 1:
             raise ValueError("frequency out of range: %s MHz" % str(mhz))

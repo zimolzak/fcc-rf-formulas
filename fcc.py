@@ -5,8 +5,10 @@ def stds(f):
     """Seems to return MPE limit mW/cm^2 for controlled & uncontrolled
     environments, respectively. As a function of frequency in MHz.
     """
-    if f < 1.34:  # fixme - probably should be <= 1.34 else you get 100.2
-        return [100, 100] # fixme - 0 MHz or less raise error
+    if f <= 0:
+        raise ValueError
+    elif f <= 1.34:
+        return [100, 100]
     elif f < 3:
         return [100, 180 / ((f) ** 2)]
     elif f < 30:
@@ -44,7 +46,7 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
     pwr = 1000 * watts
     eirp = pwr * (10 ** (gain / 10))
     dx = ft * 30.48  # centimeters
-    std1, std2 = stds(f)
+    std1, std2 = stds(f)  # these are MPE limits mw/cm2
     if g == "n":
         gf = 0.25
         gr = "without"
@@ -53,12 +55,12 @@ def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
         gr = "with"
     else:
         raise ValueError
-    pwrdens = gf * eirp / (math.pi * (dx ** 2))
-    pwrdens = (int((pwrdens * 10000) + 0.5)) / 10000  # your mW/cm2 at given dist
+    pwrdens = gf * eirp / (math.pi * (dx ** 2))  # your mW/cm2 at given dist
+    # pwrdens = (int((pwrdens * 10000) + 0.5)) / 10000
     dx1 = transform_dx(gf, eirp, std1)  # compliant distances in feet
     dx2 = transform_dx(gf, eirp, std2)
-    std1 = (int((std1 * 100) + 0.5)) / 100  # these are MPE limits mw/cm2
-    std2 = (int((std2 * 100) + 0.5)) / 100  # FIXME - this is really just rounding
+    # std1 = (int((std1 * 100) + 0.5)) / 100
+    # std2 = (int((std2 * 100) + 0.5)) / 100
     return [pwrdens, dx1, dx2, std1, std2, gr]
 
 

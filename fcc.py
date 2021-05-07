@@ -25,7 +25,7 @@ def mpe_limits_cont_uncont_mwcm2(mhz):
     elif mhz < 100000:
         return [5.0, 1.0]
     else:
-        raise ValueError  # fixme - better valueError documentation returns
+        raise ValueError
 
 
 def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
@@ -33,7 +33,7 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     radiated power (mW) as well as MPE limit and GF which includes
     ground reflection.
     """
-    centimeters = math.sqrt(gf * eirp_mw / (4 * math.pi * mpe_limit_mwcm2))  # fixme - doublecheck. write tests.
+    centimeters = math.sqrt(gf * eirp_mw / (4 * math.pi * mpe_limit_mwcm2))
     return centimeters / 30.48
 
 

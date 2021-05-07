@@ -33,6 +33,18 @@ def test_density():
         fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'y')
     with pytest.raises(ValueError):
         fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 42424242)
+    with pytest.raises(TypeError):
+        fcc.power_density_antenna(1000, 's', 100, 0, feet, 420, False)
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, -3.1, 100, 0, feet, 420, False)
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, 110, 50, 0, feet, 420, False)
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, 100, 9999, 0, feet, 420, False)
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, 100, -50, 0, feet, 420, False)
+    with pytest.raises(ValueError):
+        fcc.power_density_antenna(1000, -42, -50, 0, feet, 420, False)
 
 
 def test_generic():

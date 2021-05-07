@@ -1,12 +1,78 @@
 import math
 
 
+def stds(f):
+    """Seems to return MPE limit mW/cm^2 for controlled & uncontrolled
+    environments, respectively. As a function of frequency in MHz.
+    """
+    if f <= 0:
+        raise ValueError
+    elif f <= 1.34:
+        return [100, 100]
+    elif f < 3:
+        return [100, 180 / ((f) ** 2)]
+    elif f < 30:
+        return [900 / ((f) ** 2), 180 / ((f) ** 2)]
+    elif f < 300:
+        return [1.0, 0.2]
+    elif f < 1500:
+        return [f / 300, f / 1500]
+    elif f < 100000:
+        return [5.0, 1.0]
+    else:
+        raise ValueError
+
+
+def transform_dx(gf, eirp, std1):
+    """Calculates compliant distance (ft) as function of effective
+    radiated power (mW) as well as MPE limit and GF which includes
+    ground reflection.
+    """
+    dx1 = math.sqrt((gf * eirp) / (std1 * math.pi))
+    # r = sqrt(ERP / (4 pi density))
+    dx1 = dx1 / 30.48
+#    dx1 = (int((dx1 * 10) + 0.5)) / 10
+    return dx1
+
+
+def power_density_antenna(wattsorg, tavg, duty, gain, ft, f, g):
+    """Adapted from orig public domain by Wayne Overbeck N6Nb, 1996-2021.
+    tavg and duty range 0 to 100. gain in dBi, f is freq in MHz, g is
+    'y' or 'n'.
+
+    Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF.
+    """
+    watts = wattsorg * (tavg / 100)
+    watts = watts * (duty / 100)
+    pwr = 1000 * watts  # P_avg (mW)
+    eirp = pwr * (10 ** (gain / 10))  # ERP = P_avg * G
+    dx = ft * 30.48  # centimeters
+    std1, std2 = stds(f)  # these are MPE limits mw/cm2
+    if g == "n":
+        gf = 0.25
+        gr = "without"
+    elif g == "y":
+        gf = 0.64
+        gr = "with"
+    else:
+        raise ValueError
+    pwrdens = gf * eirp / (math.pi * (dx ** 2))  # your mW/cm2 at given dist
+    # dens = ERP / (4 pi r^2)
+    # pwrdens = (int((pwrdens * 10000) + 0.5)) / 10000
+    dx1 = transform_dx(gf, eirp, std1)  # compliant distances in feet
+    dx2 = transform_dx(gf, eirp, std2)
+    # std1 = (int((std1 * 100) + 0.5)) / 100
+    # std2 = (int((std2 * 100) + 0.5)) / 100
+    return [pwrdens, dx1, dx2, std1, std2, gr]
+
+
 def exempt_watts_generic(meters, mhz):
     """Try SAR and MPE method, return best threshold and method."""
     try:
         p_th = exempt_milliwatts_sar(meters * 100, mhz / 1000) / 1000
     except ValueError:
-        return (exempt_watts_mpe(meters, mhz), 'MPE')  # raises again if still out of range
+        return (exempt_watts_mpe(meters, mhz), 'MPE')
+        # That func will raise exception again if mhz still out of range.
     try:
         erp_th = exempt_watts_mpe(meters, mhz)
     except ValueError:
@@ -66,7 +132,8 @@ def exempt_watts_mpe(meters, mhz):
     l_over_2pi = c / nu / (2 * math.pi)  # m
     if meters < l_over_2pi:
         l_str = str(round(l_over_2pi))
-        raise ValueError("R < L/2pi (%s < %s m). RF evaluation required." % (str(meters), l_str))
+        evaluation_message = "R < L/2pi (%s < %s m). RF evaluation required."
+        raise ValueError(evaluation_message % (str(meters), l_str))
     for i in range(len(cutpoints)):
         if i == len(cutpoints) - 1:
             raise ValueError("frequency out of range: %s MHz" % str(mhz))

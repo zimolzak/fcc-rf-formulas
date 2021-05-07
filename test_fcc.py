@@ -1,11 +1,28 @@
 import pytest
-from fcc import exempt_milliwatts_sar, exempt_watts_mpe, exempt_watts_generic
+import fcc
+import math
+
+
+def test_stds():
+    with pytest.raises(ValueError):
+        fcc.stds(101000)
+    assert fcc.stds(1.2) == [100, 100]
+    assert fcc.stds(40) == [1, 0.2]
+    assert fcc.stds(3000) == [5, 1]
+
+
+def test_density():
+    cm = 100
+    feet = cm / 30.48
+    t = 1000 / (4 * math.pi * (cm ** 2)) * 1000
+    L = fcc.power_density_antenna(1000, 100, 100, 0, feet, 420, 'n')
+    assert L[0] == t
 
 
 def test_generic():
     for ghz in [0.3, 0.45, 0.835]:
         for cm in [0.5, 1, 1.5, 2]:
-            w, s = exempt_watts_generic(cm / 100, ghz * 1000)
+            w, s = fcc.exempt_watts_generic(cm / 100, ghz * 1000)
             print(str(round(w, 3)) + " W, " + str(s))
     pairs = [
         [1, 239],
@@ -25,34 +42,34 @@ def test_generic():
         [0.16, 310]  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
     ]
     for k, v in pairs:
-        w, s = exempt_watts_generic(k, v)
+        w, s = fcc.exempt_watts_generic(k, v)
         print(str(round(w, 3)) + " W, " + str(s))
 
 
 def test_generic_exceptions():
     with pytest.raises(ValueError):
-        exempt_watts_generic(20/100, 0.1 * 1000)
+        fcc.exempt_watts_generic(20/100, 0.1 * 1000)
     with pytest.raises(ValueError):
-        exempt_watts_generic(-1/100, 0.4 * 1000)
+        fcc.exempt_watts_generic(-1/100, 0.4 * 1000)
     # these are copy/pasted
     with pytest.raises(ValueError):
-        exempt_watts_generic(0.01, 144)
+        fcc.exempt_watts_generic(0.01, 144)
     with pytest.raises(ValueError):
-        exempt_watts_generic(0.01, 239)
+        fcc.exempt_watts_generic(0.01, 239)
     with pytest.raises(ValueError):
-        exempt_watts_generic(3, 0.1)
+        fcc.exempt_watts_generic(3, 0.1)
     with pytest.raises(ValueError):
-        exempt_watts_generic(3, 1)
+        fcc.exempt_watts_generic(3, 1)
     with pytest.raises(ValueError):
-        exempt_watts_generic(4, 1)
+        fcc.exempt_watts_generic(4, 1)
     with pytest.raises(ValueError):
-        exempt_watts_generic(5, 1)
+        fcc.exempt_watts_generic(5, 1)
     with pytest.raises(ValueError):
-        exempt_watts_generic(6, 1)
+        fcc.exempt_watts_generic(6, 1)
     with pytest.raises(ValueError):
-        exempt_watts_generic(30000, 0.1)  # freq 0.1 MHz too low
+        fcc.exempt_watts_generic(30000, 0.1)  # freq 0.1 MHz too low
     with pytest.raises(ValueError):
-        exempt_watts_generic(30000, 101000)  # freq 101000 too high
+        fcc.exempt_watts_generic(30000, 101000)  # freq 101000 too high
 
 
 def fcc_round(x):
@@ -79,7 +96,7 @@ def test_all_sar():
     # reference is derived directly from FCC 19-126, Table 1.
     for f in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1
         for d in [0.5, 1, 1.5, 2]:  # First 4 columns
-            result = exempt_milliwatts_sar(d, f)
+            result = fcc.exempt_milliwatts_sar(d, f)
             printme = round(result, 1)
             compare = fcc_round(result)
             print(printme, end='\t')
@@ -87,12 +104,12 @@ def test_all_sar():
         print()
     print(result_list)
     assert result_list == reference
-    assert fcc_round(exempt_milliwatts_sar(40, 1.8)) == 3060
+    assert fcc_round(fcc.exempt_milliwatts_sar(40, 1.8)) == 3060
 
 
 def t_erpth(d, f):
     """This function is just used for printing"""
-    erp = exempt_watts_mpe(d, f)
+    erp = fcc.exempt_watts_mpe(d, f)
     print("%.0f m, %.0f MHz:\t%.1f W" % (d, f, erp))
 
 
@@ -116,15 +133,15 @@ def test_sar_exceptions():
     # d     0   - 40
     # freq  0.3 -  6
     with pytest.raises(ValueError):
-        exempt_milliwatts_sar(41, 1)    # d high
+        fcc.exempt_milliwatts_sar(41, 1)    # d high
     with pytest.raises(ValueError):
-        exempt_milliwatts_sar(20, 0.1)  # f low
+        fcc.exempt_milliwatts_sar(20, 0.1)  # f low
     with pytest.raises(ValueError):
-        exempt_milliwatts_sar(20, 7)    # f high
+        fcc.exempt_milliwatts_sar(20, 7)    # f high
     with pytest.raises(ValueError):
-        exempt_milliwatts_sar(99, 99)   # both high
+        fcc.exempt_milliwatts_sar(99, 99)   # both high
     with pytest.raises(ValueError):
-        exempt_milliwatts_sar(-1, 0.4)  # neg distance
+        fcc.exempt_milliwatts_sar(-1, 0.4)  # neg distance
 
 
 def test_erp_exceptions():
@@ -169,3 +186,8 @@ if __name__ == '__main__':
     print("Generic exceptions passed.")
 
     print()
+
+    for i in range(10, 500):
+        print(i, end=' ')
+        print(fcc.mpe_power_density_mwcm2(i, True), end=' ')
+        print(fcc.stds(i)[0])

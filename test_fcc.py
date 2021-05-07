@@ -3,20 +3,7 @@ import fcc
 import math
 
 
-def vp(pwr, dbi, meters, mhz, ground):
-    """Mimic inputs to the Paul Evans web calculator, for easy comparison."""
-    return fcc.rf_evaluation_report(pwr, 100, 100, dbi, meters / 0.3048, mhz, ground)
-
-
-KEYS_IN_ORDER = ["Power density",
-                 "MPE controlled",
-                 "MPE uncontrolled",
-                 "Distance controlled",
-                 "Distance uncontrolled",
-                 "Compliant controlled",
-                 "Compliant uncontrolled"]
-
-def test_stds():
+def test_mpe_limits():
     with pytest.raises(ValueError):
         fcc.mpe_limits_cont_uncont_mwcm2(101000)
     with pytest.raises(ValueError):
@@ -61,14 +48,27 @@ def test_density():
         fcc.power_density_mwcm2(1000, -42, -50, 0, feet, False)
 
 
-def one_web(a,b,c,d,e, expected):
-    report = vp(a,b,c,d,e)
-    for i, k in enumerate(KEYS_IN_ORDER):
-        assert report[k] == pytest.approx(expected[i], rel=0.04)  # 4 percent is surprisingly high
+def one_web(pwr, gain, meters, mhz, ground, expected):
+    keys_in_order = ["Power density",
+                     "MPE controlled",
+                     "MPE uncontrolled",
+                     "Distance controlled",
+                     "Distance uncontrolled",
+                     "Compliant controlled",
+                     "Compliant uncontrolled"]
+    report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / 0.3048, mhz, ground)
+    for i, k in enumerate(keys_in_order):
+        assert report[k] == pytest.approx(expected[i], rel=0.05)  # 5 percent is surprisingly high
 
 
 def test_web_many():
     one_web(123, 2, 10, 420, True, [0.0398, 1.41, 0.29, 5.58, 12.41, True, True])
+    one_web(456, 3, 17, 123, True, [0.0642, 1.01, 0.21, 14.17, 31.63, True, True])
+    one_web(111, 3.1, 11, 187, False, [0.015, 1.01, 0.21, 4.46, 9.9, True, True])
+    one_web(1500, 2.2, 2, 146, False, [4.9525, 1.01, 0.21, 14.65, 32.7, False, False])
+    one_web(200, 2.2, 2, 3.9, True, [1.6905, 59.18, 11.84, 1.16, 2.53, True, True])  # 80 m band
+    one_web(1500, 2.2, 2, 3.9, True, [12.6784, 59.18, 11.84, 3.09, 6.84, True, False])  # 80 m, MOAR POWAR
+    one_web(200, 2.2, 2, 10.110, True, [1.6905, 8.81, 1.77, 2.93, 6.48, True, True])  # 30 m
 
 
 def test_generic():
@@ -127,9 +127,9 @@ def test_generic_exceptions():
 def fcc_round(x):
     """Round as in FCC 19-126 Table 1, p. 23."""
     if x < 10:
-        return (round(x, 1))
+        return round(x, 1)
     else:
-        return (int(round(x)))
+        return int(round(x))
 
 
 def test_fcc_round():

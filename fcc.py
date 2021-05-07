@@ -32,7 +32,37 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     return centimeters / 30.48
 
 
-def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
+def reflection_constant(ground_reflections):
+    if type(ground_reflections) != bool:
+        raise ValueError
+    if not ground_reflections:
+        return 1
+    else:
+        return 1.6 * 1.6  # source: OET #65 pp. 20-21. EPA 520/6-85-011.
+
+
+def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
+
+    # fixme - duplicative code
+    milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
+    eirp = milliwatts_average * (10 ** (dbi / 10))
+
+    s = power_density_antenna(watts, t_average, duty, dbi, ft, ground_reflections)
+    limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
+    feet_controlled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_controlled)
+    feet_uncontrolled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_uncontrolled)
+    compliant_controlled = s < limit_controlled
+    compliant_uncontrolled = s < limit_uncontrolled
+    return {"Power density": s,
+            "MPE controlled": limit_controlled,
+            "MPE uncontrolled": limit_uncontrolled,
+            "Distance controlled": feet_controlled,
+            "Distance uncontrolled": feet_uncontrolled,
+            "Compliant controlled": compliant_controlled,
+            "Compliant uncontrolled": compliant_uncontrolled}
+
+
+def power_density_antenna(watts, t_average, duty, dbi, ft, ground_reflections):
     """Calculate power density (mW/cm^2) given input power and distance, and compliant distances (controlled &
     uncontrolled environment) given input power.
 
@@ -48,22 +78,11 @@ def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflectio
     """
     if not (0 <= t_average <= 100 and 0 <= duty <= 100):
         raise ValueError
-    if type(ground_reflections) != bool:
-        raise ValueError
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
     eirp = milliwatts_average * (10 ** (dbi / 10))
     cm = ft * 30.48
-    limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2 # fixme - put in different func.
-    if not ground_reflections:
-        reflection_constant = 1
-    else:
-        reflection_constant = 1.6 * 1.6  # source: OET #65 pp. 20-21. EPA 520/6-85-011.
-    power_density = reflection_constant * eirp / (4 * math.pi * (cm ** 2))  # your mW/cm^2 at given dist
-    feet_controlled = compliant_distance_ft(reflection_constant, eirp, limit_controlled)  # fixme - put in different func.
-    feet_uncontrolled = compliant_distance_ft(reflection_constant, eirp, limit_uncontrolled)
-    compliant_controlled = power_density < limit_controlled
-    compliant_uncontrolled = power_density < limit_uncontrolled
-    return [power_density, feet_controlled, feet_uncontrolled, compliant_controlled, compliant_uncontrolled]
+    power_density = reflection_constant(ground_reflections) * eirp / (4 * math.pi * (cm ** 2))  # your mW/cm^2 at given dist
+    return power_density
 
 
 def exempt_watts_generic(meters, mhz):

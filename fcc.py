@@ -43,9 +43,9 @@ def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflectio
     Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF.
     """
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
-    eirp = milliwatts_average * (10 ** (dbi / 10))  # ERP = P_avg * G
-    dx = ft * 30.48  # centimeters
-    std1, std2 = mpe_limits_cont_uncont_mwcm2(mhz)  # these are MPE limits mw/cm2
+    eirp = milliwatts_average * (10 ** (dbi / 10))
+    cm = ft * 30.48
+    limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
     if ground_reflections == "n":
         gf = 0.25  # rational number 1/4
         gr = "without"
@@ -54,14 +54,14 @@ def power_density_antenna(watts, t_average, duty, dbi, ft, mhz, ground_reflectio
         gr = "with"
     else:
         raise ValueError
-    pwrdens = gf * eirp / (math.pi * (dx ** 2))  # your mW/cm2 at given dist
+    pwrdens = gf * eirp / (math.pi * (cm ** 2))  # your mW/cm^2 at given dist
     # dens = ERP / (4 pi r^2)
     # pwrdens = (int((pwrdens * 10000) + 0.5)) / 10000
-    dx1 = compliant_distance_ft(gf, eirp, std1)  # compliant distances in feet
-    dx2 = compliant_distance_ft(gf, eirp, std2)
-    # std1 = (int((std1 * 100) + 0.5)) / 100
-    # std2 = (int((std2 * 100) + 0.5)) / 100
-    return [pwrdens, dx1, dx2, std1, std2, gr]
+    feet_controlled = compliant_distance_ft(gf, eirp, limit_controlled)
+    feet_uncontrolled = compliant_distance_ft(gf, eirp, limit_uncontrolled)
+    # limit_controlled = (int((limit_controlled * 100) + 0.5)) / 100
+    # limit_uncontrolled = (int((limit_uncontrolled * 100) + 0.5)) / 100
+    return [pwrdens, feet_controlled, feet_uncontrolled, limit_controlled, limit_uncontrolled, gr]
 
 
 def exempt_watts_generic(meters, mhz):

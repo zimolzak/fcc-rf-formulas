@@ -18,7 +18,6 @@ def test_stds():
     assert fcc.mpe_limits_cont_uncont_mwcm2(3000) == [5, 1]
 
 
-
 def test_density():
     cm = 100
     feet = cm / 30.48

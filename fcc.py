@@ -6,7 +6,7 @@
 import math
 
 
-def is_good(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
+def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
     """Return a boolean and a string."""
     meters = ft * 0.3048
     if is_exempt(watts, meters, mhz):  # fixme - might have to check power vs ERP vs EIRP

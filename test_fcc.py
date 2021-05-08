@@ -49,9 +49,9 @@ def test_is_exempt():
     print("\n    Looped %d tests of is_exempt()." % n, end='')
 
 
-def test_is_good():
+def test_is_compliant():
     # w t duty db ft mhz ground contr
-    assert fcc.is_good(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')
+    assert fcc.is_compliant(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')
     # These 5 args don't matter if exempt
     t = 100
     du = 100
@@ -64,16 +64,16 @@ def test_is_good():
         w = mw / 1000
         ft = cm / 30.48
         mhz = ghz * 1000
-        assert fcc.is_good(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'exemption')
-        # Shouldn't test w * 1.1, because some powers above MPE exemption will pass is_good() by eval.
+        assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'exemption')
+        # Shouldn't test w * 1.1, because some powers above MPE exemption will pass is_compliant() by eval.
         n += 1
     for meters, mhz in mpe_usable_values():
         # valid MPE thresholds
         w = fcc.exempt_watts_mpe(meters, mhz)
         ft = meters / 0.3048
-        assert fcc.is_good(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'exemption')
+        assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'exemption')
         n += 1
-    print("\n    Looped %d tests of is_good()." % n, end='')
+    print("\n    Looped %d tests of is_compliant()." % n, end='')
 
 
 def test_mpe_limits_cont_uncont_mwcm2():

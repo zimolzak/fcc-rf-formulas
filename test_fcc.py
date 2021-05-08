@@ -22,17 +22,17 @@ def test_is_exempt():
     assert fcc.is_exempt(5, 0.1, 420) is False
     with pytest.raises(ValueError):
         fcc.is_exempt(5, 0.1, 1234567890)
-    # fixme - Do lots more based on other tests
+    # fixme - Do lots more based on other tests (generic()): make global
 
 
 def test_is_good():
     assert fcc.is_good(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')
-    # fixme - do lots more
+    # fixme - do lots more (report()): make global
 
 
-def test_mpe_limits():
+def test_mpe_limits_cont_uncont_mwcm2():
     with pytest.raises(ValueError):
-        fcc.mpe_limits_cont_uncont_mwcm2(101000)
+        fcc.mpe_limits_cont_uncont_mwcm2(101000)  # mhz
     with pytest.raises(ValueError):
         fcc.mpe_limits_cont_uncont_mwcm2(0)
     with pytest.raises(ValueError):
@@ -45,7 +45,7 @@ def test_mpe_limits():
     assert fcc.mpe_limits_cont_uncont_mwcm2(3000) == [5, 1]
 
 
-def test_density():
+def test_power_density_mwcm2():
     # first principles
     cm = 100
     feet = cm / 30.48
@@ -69,8 +69,8 @@ def test_density():
         fcc.power_density_mwcm2(1000, feet, 42424242)
 
 
-def test_eirp():
-    for w in range(1, 20):
+def test_effective_isotropic_radiated_power():
+    for w in range(1, 20):  # fixme - nifty to count up tests
         assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 100, 100, 0)  # isotropic
     for w in range(1, 20):
         assert w * 1000 * 10 == fcc.effective_isotropic_radiated_power(w, 100, 100, 10)  # 10 dB gain
@@ -103,7 +103,7 @@ def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
         assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
 
 
-def test_web_many():
+def test_rf_evaluation_report():
     one_web(123, 2, 10, 420, True, [0.0398, 1.41, 0.29, 5.58, 12.41, True, True])
     one_web(456, 3, 17, 123, True, [0.0642, 1.01, 0.21, 14.17, 31.63, True, True])
     one_web(111, 3.1, 11, 187, False, [0.015, 1.01, 0.21, 4.46, 9.9, True, True])
@@ -114,9 +114,9 @@ def test_web_many():
     one_web(5, 2.2, 0.1, 145.170, False, [6.6033, 1.01, 0.21, 0.89, 1.94, False, False], 0.06)  # HT on 2m
 
 
-def test_generic():
-    for ghz in [0.3, 0.45, 0.835]:
-        for cm in [0.5, 1, 1.5, 2]:
+def test_exempt_watts_generic():
+    for ghz in [0.3, 0.45, 0.835]:  # fixme - make global
+        for cm in [0.5, 1, 1.5, 2]:  # fixme - count up tests
             w, s = fcc.exempt_watts_generic(cm / 100, ghz * 1000)
             print(str(round(w, 3)) + " W, " + str(s))
     pairs = [
@@ -136,17 +136,15 @@ def test_generic():
         [0.398, 120],  # 120 mhz no SAR. 39.8 cm dist, 250 cm wavelength
         [0.16, 310]  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
     ]
-    for k, v in pairs:
+    for k, v in pairs:  # fixme - count up tests
         w, s = fcc.exempt_watts_generic(k, v)
         print(str(round(w, 3)) + " W, " + str(s))
-
-
-def test_generic_exceptions():
+    # Begin exception testing
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(20 / 100, 0.1 * 1000)
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(-1 / 100, 0.4 * 1000)
-    # these are copy/pasted
+    # fixme - these are copy/pasted from testing ERP: make global.
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(0.01, 144)
     with pytest.raises(ValueError):
@@ -185,12 +183,12 @@ def test_fcc_round():
     assert fcc_round(3060.1234) == 3060
 
 
-def test_all_sar():
+def test_exempt_milliwatts_sar():
     result_list = []
     reference = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
     # reference is derived directly from FCC 19-126, Table 1.
-    for f in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1
-        for d in [0.5, 1, 1.5, 2]:  # First 4 columns
+    for f in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1  # fixme - make global
+        for d in [0.5, 1, 1.5, 2]:  # First 4 columns # fixme - count up tests
             result = fcc.exempt_milliwatts_sar(d, f)
             printme = round(result, 1)
             compare = fcc_round(result)
@@ -200,31 +198,6 @@ def test_all_sar():
     print(result_list)
     assert result_list == reference
     assert fcc_round(fcc.exempt_milliwatts_sar(40, 1.8)) == 3060
-
-
-def t_erpth(d, f):
-    """This function is just used for printing"""
-    erp = fcc.exempt_watts_mpe(d, f)
-    print("%.0f m, %.0f MHz:\t%.1f W" % (d, f, erp))
-
-
-def test_all_erp():
-    """We are not (yet) asserting return vals. No external FCC ref
-    available.
-    """
-    t_erpth(1, 239)
-    t_erpth(3, 20)
-    t_erpth(3, 50)
-    t_erpth(3, 100)
-    t_erpth(3, 10000)
-    t_erpth(50, 1)
-    t_erpth(50, 100)
-    t_erpth(50, 420)
-    t_erpth(50, 2000)
-    t_erpth(30000, 10000)  # 17 GW LOL, buy SEVERAL power plants
-
-
-def test_sar_exceptions():
     # d     0   - 40
     # freq  0.3 -  6
     with pytest.raises(ValueError):
@@ -239,7 +212,26 @@ def test_sar_exceptions():
         fcc.exempt_milliwatts_sar(-1, 0.4)  # neg distance
 
 
-def test_erp_exceptions():
+def t_erpth(d, f):
+    """This function is just used for printing"""
+    erp = fcc.exempt_watts_mpe(d, f)
+    print("%.0f m, %.0f MHz:\t%.1f W" % (d, f, erp))
+
+
+def test_exempt_watts_mpe():
+    """We are not (yet) asserting return vals. No external FCC ref
+    available.
+    """
+    t_erpth(1, 239)
+    t_erpth(3, 20)
+    t_erpth(3, 50)
+    t_erpth(3, 100)
+    t_erpth(3, 10000)
+    t_erpth(50, 1)
+    t_erpth(50, 100)
+    t_erpth(50, 420)
+    t_erpth(50, 2000)
+    t_erpth(30000, 10000)  # 17 GW LOL, buy SEVERAL power plants
     # all are R < L/2pi except as noted
     with pytest.raises(ValueError):
         t_erpth(0.01, 144)

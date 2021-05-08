@@ -116,7 +116,7 @@ def exempt_watts_generic(meters, mhz):
 def is_exempt(watts, meters, mhz):
     try:
         threshold, method = exempt_watts_generic(meters, mhz)
-        return watts < threshold
+        return watts < threshold  # fixme - consider returning tuple of (True, method)
     except RFEvaluationError:
         return False
     # Do not catch general ValueError, which means mhz may be out of range.

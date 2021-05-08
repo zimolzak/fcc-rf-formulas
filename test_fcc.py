@@ -119,6 +119,19 @@ def test_rf_evaluation_report():
     one_web(5, 2.2, 0.1, 145.170, False, [6.6033, 1.01, 0.21, 0.89, 1.94, False, False], 0.06)  # HT on 2m
 
 
+def mpe_exception_values():
+    # all are R < L/2pi except as noted
+    yield 0.01, 144
+    yield 0.01, 239
+    yield 3, 0.1
+    yield 3, 1
+    yield 4, 1
+    yield 5, 1
+    yield 6, 1
+    yield 30000, 0.1  # freq 0.1 MHz too low
+    yield 30000, 101000  # freq 101000 too high
+
+
 def test_exempt_watts_generic():
     n = 0
     for ghz, cm, mw in fcc_table():
@@ -135,7 +148,7 @@ def test_exempt_watts_generic():
         [50, 100],
         [50, 420],
         [50, 2000],
-        [30000, 10000],
+        [30000, 10000], # fixme - insert global
         [41 / 100, 1 * 1000],  # fails SAR
         [20 / 100, 7 * 1000],  # fails SAR
         [99 / 100, 99 * 1000],  # fails SAR
@@ -145,30 +158,15 @@ def test_exempt_watts_generic():
     for k, v in pairs:
         w, s = fcc.exempt_watts_generic(k, v)  # throwaway
         n += 1
-    print("\n    Looped %d tests of exempt_watts_generic()." % n, end='')
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(20 / 100, 0.1 * 1000)
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(-1 / 100, 0.4 * 1000)
-    # fixme - these are copy/pasted from testing ERP: insert global.
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(0.01, 144)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(0.01, 239)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(3, 0.1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(3, 1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(4, 1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(5, 1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(6, 1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(30000, 0.1)  # freq 0.1 MHz too low
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_generic(30000, 101000)  # freq 101000 too high
+    for meters, mhz in mpe_exception_values():
+        with pytest.raises(ValueError):
+            fcc.exempt_watts_generic(meters, mhz)
+        n += 1
+    print("\n    Looped %d tests of exempt_watts_generic()." % n, end='')
 
 
 def fcc_round(x):
@@ -233,10 +231,9 @@ def test_exempt_watts_mpe():
     fcc.exempt_watts_mpe(50, 1)
     fcc.exempt_watts_mpe(50, 100)
     fcc.exempt_watts_mpe(50, 420)
-    fcc.exempt_watts_mpe(50, 2000)
+    fcc.exempt_watts_mpe(50, 2000) # fixme - make global
     fcc.exempt_watts_mpe(30000, 10000)  # 17 GW LOL, buy SEVERAL power plants
-    # all are R < L/2pi except as noted
-    # fixme - make global
+    # fixme - insert global
     with pytest.raises(ValueError):
         fcc.exempt_watts_mpe(0.01, 144)
     with pytest.raises(ValueError):

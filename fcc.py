@@ -59,6 +59,7 @@ def effective_isotropic_radiated_power(watts, t_average, duty, dbi):
 
 
 def is_good(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
+    """Return a boolean and a string."""
     meters = ft * 0.3048
     if is_exempt(watts, meters, mhz):  # fixme - might have to check power vs ERP vs EIRP
         return True, 'exemption'
@@ -72,7 +73,7 @@ def is_good(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled
 
 def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
     """Report on power density (mW/cm^2) given input power and distance; and on compliant distances (controlled &
-    uncontrolled environment) given input power.
+    uncontrolled environment) given input power. Return a dict.
     """
     eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
     s = power_density_mwcm2(eirp, ft, ground_reflections)
@@ -97,7 +98,7 @@ def power_density_mwcm2(eirp_mw, ft, ground_reflections):
 
 
 def exempt_watts_generic(meters, mhz):
-    """Try SAR and MPE method, return best threshold and method."""
+    """Try SAR and MPE method, return best threshold (float) and method (str)."""
     try:
         p_th = exempt_milliwatts_sar(meters * 100, mhz / 1000) / 1000
     except ValueError:
@@ -114,6 +115,7 @@ def exempt_watts_generic(meters, mhz):
 
 
 def is_exempt(watts, meters, mhz):
+    """Return boolean."""
     try:
         threshold, method = exempt_watts_generic(meters, mhz)
         return watts < threshold  # fixme - consider returning tuple of (True, method)

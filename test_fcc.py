@@ -25,6 +25,7 @@ def test_is_exempt():
     with pytest.raises(ValueError):
         fcc.is_exempt(5, 0.1, 1234567890)
     for ghz, cm, mw in fcc_table():
+        # valid SAR thresholds
         w = mw / 1000
         m = cm / 100
         mhz = ghz * 1000
@@ -32,13 +33,15 @@ def test_is_exempt():
         assert fcc.is_exempt(w * 1.1, m, mhz) is False
         n += 2
     for meters, mhz, why_exception in mpe_exception_values():
+        # known NON-exemption
         if why_exception == 'freq':
             with pytest.raises(ValueError):
-                fcc.is_exempt(0.42, meters, mhz)
+                fcc.is_exempt(0.42, meters, mhz)  # watts doesn't matter if freq invalid
         else:
-            assert fcc.is_exempt(0.42, meters, mhz) is False
+            assert fcc.is_exempt(0.42, meters, mhz) is False  # watts don't matter in near field
         n += 1
     for meters, mhz in mpe_usable_values():
+        # valid MPE thresholds
         w = fcc.exempt_watts_mpe(meters, mhz)
         assert fcc.is_exempt(w * 0.9, meters, mhz)
         assert fcc.is_exempt(w * 1.1, meters, mhz) is False
@@ -47,8 +50,30 @@ def test_is_exempt():
 
 
 def test_is_good():
+    # w t duty db ft mhz ground contr
     assert fcc.is_good(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')
-    # fixme - do lots more (report()): insert global
+    # These 5 args don't matter if exempt
+    t = 100
+    du = 100
+    db = 0
+    gr = False
+    co = False
+    n = 0
+    for ghz, cm, mw in fcc_table():
+        # valid SAR thresholds
+        w = mw / 1000
+        ft = cm / 30.48
+        mhz = ghz * 1000
+        assert fcc.is_good(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'exemption')
+        # Shouldn't test w * 1.1, because some powers above MPE exemption will pass is_good() by eval.
+        n += 1
+    for meters, mhz in mpe_usable_values():
+        # valid MPE thresholds
+        w = fcc.exempt_watts_mpe(meters, mhz)
+        ft = meters / 0.3048
+        assert fcc.is_good(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'exemption')
+        n += 1
+    print("\n    Looped %d tests of is_good()." % n, end='')
 
 
 def test_mpe_limits_cont_uncont_mwcm2():

@@ -132,6 +132,20 @@ def mpe_exception_values():
     yield 30000, 101000  # freq 101000 too high
 
 
+def mpe_usable_values():
+    # meters, mhz
+    yield 1, 239
+    yield 3, 20
+    yield 3, 50
+    yield 3, 100
+    yield 3, 10000
+    yield 50, 1
+    yield 50, 100
+    yield 50, 420
+    yield 50, 2000
+    yield 30000, 10000  # 17 GW LOL, buy SEVERAL power plants
+
+
 def test_exempt_watts_generic():
     n = 0
     for ghz, cm, mw in fcc_table():
@@ -223,32 +237,12 @@ def test_exempt_watts_mpe():
     """We are not (yet) asserting return vals. No external FCC ref
     available.
     """
-    fcc.exempt_watts_mpe(1, 239)
-    fcc.exempt_watts_mpe(3, 20)
-    fcc.exempt_watts_mpe(3, 50)
-    fcc.exempt_watts_mpe(3, 100)
-    fcc.exempt_watts_mpe(3, 10000)
-    fcc.exempt_watts_mpe(50, 1)
-    fcc.exempt_watts_mpe(50, 100)
-    fcc.exempt_watts_mpe(50, 420)
-    fcc.exempt_watts_mpe(50, 2000) # fixme - make global
-    fcc.exempt_watts_mpe(30000, 10000)  # 17 GW LOL, buy SEVERAL power plants
-    # fixme - insert global
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(0.01, 144)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(0.01, 239)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(3, 0.1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(3, 1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(4, 1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(5, 1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(6, 1)
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(30000, 0.1)  # freq 0.1 MHz too low
-    with pytest.raises(ValueError):
-        fcc.exempt_watts_mpe(30000, 101000)  # freq 101000 too high
+    n = 0
+    for meters, mhz in mpe_usable_values():
+        fcc.exempt_watts_mpe(meters, mhz)  # throwaway
+        n += 1
+    for meters, mhz in mpe_exception_values():
+        with pytest.raises(ValueError):
+            fcc.exempt_watts_mpe(meters, mhz)
+        n += 1
+    print("\n    Looped %d tests of exempt_watts_mpe()." % n, end='')

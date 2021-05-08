@@ -19,14 +19,12 @@ def test_inverses():
 
 def test_is_exempt():
     n = 0
-    # watts, m, mhz
+    # watts, m, mhz are arguments to is_exempt()
     assert fcc.is_exempt(5, 1, 420)
     assert fcc.is_exempt(5, 0.1, 420) is False
     with pytest.raises(ValueError):
         fcc.is_exempt(5, 0.1, 1234567890)
-    # fcc table, mpe exception values, mpe usable values
     for ghz, cm, mw in fcc_table():
-        # watts, m, mhz are arguments to is_exempt()
         w = mw / 1000
         m = cm / 100
         mhz = ghz * 1000
@@ -40,9 +38,12 @@ def test_is_exempt():
         else:
             assert fcc.is_exempt(0.42, meters, mhz) is False
         n += 1
+    for meters, mhz in mpe_usable_values():
+        w = fcc.exempt_watts_mpe(meters, mhz)
+        assert fcc.is_exempt(w * 0.9, meters, mhz)
+        assert fcc.is_exempt(w * 1.1, meters, mhz) is False
+        n += 2
     print("\n    Looped %d tests of is_exempt()." % n, end='')
-
-    # fixme - Do lots more based on other tests (generic()): insert global
 
 
 def test_is_good():

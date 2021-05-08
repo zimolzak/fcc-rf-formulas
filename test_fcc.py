@@ -3,52 +3,6 @@ import fcc
 import math
 
 
-def test_inverses():
-    """distance = f(power, density)
-    density = f(power, distance)
-    """
-    n = 0
-    for feet in range(1, 300, 11):
-        for milliwatts in range(100, 1000 * 100, 1131):
-            density = fcc.power_density_mwcm2(milliwatts, feet, False)
-            calc_feet = fcc.compliant_distance_ft(1, milliwatts, density)
-            assert feet == pytest.approx(calc_feet)
-            n += 1
-    print("\n    Looped %d tests of inverses." % n, end='')
-
-
-def test_is_exempt():
-    n = 0
-    # watts, m, mhz are arguments to is_exempt()
-    assert fcc.is_exempt(5, 1, 420)
-    assert fcc.is_exempt(5, 0.1, 420) is False
-    with pytest.raises(ValueError):
-        fcc.is_exempt(5, 0.1, 1234567890)
-    for ghz, cm, mw in fcc_table():
-        # valid SAR thresholds
-        w = mw / 1000
-        m = cm / 100
-        mhz = ghz * 1000
-        assert fcc.is_exempt(w * 0.9, m, mhz)
-        assert fcc.is_exempt(w * 1.1, m, mhz) is False
-        n += 2
-    for meters, mhz, why_exception in mpe_exception_values():
-        # known NON-exemption
-        if why_exception == 'freq':
-            with pytest.raises(ValueError):
-                fcc.is_exempt(0.42, meters, mhz)  # watts doesn't matter if freq invalid
-        else:
-            assert fcc.is_exempt(0.42, meters, mhz) is False  # watts don't matter in near field
-        n += 1
-    for meters, mhz in mpe_usable_values():
-        # valid MPE thresholds
-        w = fcc.exempt_watts_mpe(meters, mhz)
-        assert fcc.is_exempt(w * 0.9, meters, mhz)
-        assert fcc.is_exempt(w * 1.1, meters, mhz) is False
-        n += 2
-    print("\n    Looped %d tests of is_exempt()." % n, end='')
-
-
 def test_is_compliant():
     # w t duty db ft mhz ground contr
     assert fcc.is_compliant(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')
@@ -76,6 +30,33 @@ def test_is_compliant():
     print("\n    Looped %d tests of is_compliant()." % n, end='')
 
 
+# Evaluation ########
+
+
+def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
+    keys_in_order = ["Power density",
+                     "MPE controlled",
+                     "MPE uncontrolled",
+                     "Distance controlled",
+                     "Distance uncontrolled",
+                     "Compliant controlled",
+                     "Compliant uncontrolled"]
+    report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / 0.3048, mhz, ground)
+    for i, k in enumerate(keys_in_order):
+        assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
+
+
+def test_rf_evaluation_report():
+    one_web(123, 2, 10, 420, True, [0.0398, 1.41, 0.29, 5.58, 12.41, True, True])
+    one_web(456, 3, 17, 123, True, [0.0642, 1.01, 0.21, 14.17, 31.63, True, True])
+    one_web(111, 3.1, 11, 187, False, [0.015, 1.01, 0.21, 4.46, 9.9, True, True])
+    one_web(1500, 2.2, 2, 146, False, [4.9525, 1.01, 0.21, 14.65, 32.7, False, False])
+    one_web(200, 2.2, 2, 3.9, True, [1.6905, 59.18, 11.84, 1.16, 2.53, True, True])  # 80 m band
+    one_web(1500, 2.2, 2, 3.9, True, [12.6784, 59.18, 11.84, 3.09, 6.84, True, False])  # 80 m, MOAR POWAR
+    one_web(200, 2.2, 2, 10.110, True, [1.6905, 8.81, 1.77, 2.93, 6.48, True, True])  # 30 m
+    one_web(5, 2.2, 0.1, 145.170, False, [6.6033, 1.01, 0.21, 0.89, 1.94, False, False], 0.06)  # HT on 2m
+
+
 def test_mpe_limits_cont_uncont_mwcm2():
     with pytest.raises(ValueError):
         fcc.mpe_limits_cont_uncont_mwcm2(101000)  # mhz
@@ -89,6 +70,20 @@ def test_mpe_limits_cont_uncont_mwcm2():
     fcc.mpe_limits_cont_uncont_mwcm2(15)
     assert fcc.mpe_limits_cont_uncont_mwcm2(40) == [1, 0.2]
     assert fcc.mpe_limits_cont_uncont_mwcm2(3000) == [5, 1]
+
+
+def test_inverses():
+    """distance = f(power, density)
+    density = f(power, distance)
+    """
+    n = 0
+    for feet in range(1, 300, 11):
+        for milliwatts in range(100, 1000 * 100, 1131):
+            density = fcc.power_density_mwcm2(milliwatts, feet, False)
+            calc_feet = fcc.compliant_distance_ft(1, milliwatts, density)
+            assert feet == pytest.approx(calc_feet)
+            n += 1
+    print("\n    Looped %d tests of inverses." % n, end='')
 
 
 def test_power_density_mwcm2():
@@ -141,55 +136,39 @@ def test_effective_isotropic_radiated_power():
         fcc.effective_isotropic_radiated_power(1000, -42, -50, 0)
 
 
-def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
-    keys_in_order = ["Power density",
-                     "MPE controlled",
-                     "MPE uncontrolled",
-                     "Distance controlled",
-                     "Distance uncontrolled",
-                     "Compliant controlled",
-                     "Compliant uncontrolled"]
-    report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / 0.3048, mhz, ground)
-    for i, k in enumerate(keys_in_order):
-        assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
+# Exemption ########
 
 
-def test_rf_evaluation_report():
-    one_web(123, 2, 10, 420, True, [0.0398, 1.41, 0.29, 5.58, 12.41, True, True])
-    one_web(456, 3, 17, 123, True, [0.0642, 1.01, 0.21, 14.17, 31.63, True, True])
-    one_web(111, 3.1, 11, 187, False, [0.015, 1.01, 0.21, 4.46, 9.9, True, True])
-    one_web(1500, 2.2, 2, 146, False, [4.9525, 1.01, 0.21, 14.65, 32.7, False, False])
-    one_web(200, 2.2, 2, 3.9, True, [1.6905, 59.18, 11.84, 1.16, 2.53, True, True])  # 80 m band
-    one_web(1500, 2.2, 2, 3.9, True, [12.6784, 59.18, 11.84, 3.09, 6.84, True, False])  # 80 m, MOAR POWAR
-    one_web(200, 2.2, 2, 10.110, True, [1.6905, 8.81, 1.77, 2.93, 6.48, True, True])  # 30 m
-    one_web(5, 2.2, 0.1, 145.170, False, [6.6033, 1.01, 0.21, 0.89, 1.94, False, False], 0.06)  # HT on 2m
-
-
-def mpe_exception_values():
-    # all are R < L/2pi RFEvaluationError except as noted
-    yield 0.01, 144, 'nearfield'
-    yield 0.01, 239, 'nearfield'
-    yield 3, 0.1, 'nearfield'
-    yield 3, 1, 'nearfield'
-    yield 4, 1, 'nearfield'
-    yield 5, 1, 'nearfield'
-    yield 6, 1, 'nearfield'
-    yield 30000, 0.1, 'freq'  # freq 0.1 MHz too low
-    yield 30000, 101000, 'freq'  # freq 101000 too high
-
-
-def mpe_usable_values():
-    # meters, mhz
-    yield 1, 239
-    yield 3, 20
-    yield 3, 50
-    yield 3, 100
-    yield 3, 10000
-    yield 50, 1
-    yield 50, 100
-    yield 50, 420
-    yield 50, 2000
-    yield 30000, 10000  # 17 GW LOL, buy SEVERAL power plants
+def test_is_exempt():
+    n = 0
+    # watts, m, mhz are arguments to is_exempt()
+    assert fcc.is_exempt(5, 1, 420)
+    assert fcc.is_exempt(5, 0.1, 420) is False
+    with pytest.raises(ValueError):
+        fcc.is_exempt(5, 0.1, 1234567890)
+    for ghz, cm, mw in fcc_table():
+        # valid SAR thresholds
+        w = mw / 1000
+        m = cm / 100
+        mhz = ghz * 1000
+        assert fcc.is_exempt(w * 0.9, m, mhz)
+        assert fcc.is_exempt(w * 1.1, m, mhz) is False
+        n += 2
+    for meters, mhz, why_exception in mpe_exception_values():
+        # known NON-exemption
+        if why_exception == 'freq':
+            with pytest.raises(ValueError):
+                fcc.is_exempt(0.42, meters, mhz)  # watts doesn't matter if freq invalid
+        else:
+            assert fcc.is_exempt(0.42, meters, mhz) is False  # watts don't matter in near field
+        n += 1
+    for meters, mhz in mpe_usable_values():
+        # valid MPE thresholds
+        w = fcc.exempt_watts_mpe(meters, mhz)
+        assert fcc.is_exempt(w * 0.9, meters, mhz)
+        assert fcc.is_exempt(w * 1.1, meters, mhz) is False
+        n += 2
+    print("\n    Looped %d tests of is_exempt()." % n, end='')
 
 
 def test_exempt_watts_generic():
@@ -220,34 +199,6 @@ def test_exempt_watts_generic():
             fcc.exempt_watts_generic(meters, mhz)
         n += 1
     print("\n    Looped %d tests of exempt_watts_generic()." % n, end='')
-
-
-def fcc_round(x):
-    """Round as in FCC 19-126 Table 1, p. 23."""
-    if x < 10:
-        return round(x, 1)
-    else:
-        return int(round(x))
-
-
-def test_fcc_round():
-    assert fcc_round(39.1234) == 39
-    assert fcc_round(22) == 22
-    assert fcc_round(22.0) == 22
-    assert fcc_round(2.1234) == 2.1
-    assert fcc_round(9.0) == 9.0
-    assert fcc_round(9.01234) == 9.0
-    assert fcc_round(3060.1234) == 3060
-
-
-def fcc_table():
-    """Source: FCC 19-126, page 23, Table 1."""
-    i = 0
-    reference_mw = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
-    for ghz in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1
-        for cm in [0.5, 1, 1.5, 2]:  # First 4 columns
-            yield ghz, cm, reference_mw[i]
-            i += 1
 
 
 def test_exempt_milliwatts_sar():
@@ -285,3 +236,61 @@ def test_exempt_watts_mpe():
             fcc.exempt_watts_mpe(meters, mhz)
         n += 1
     print("\n    Looped %d tests of exempt_watts_mpe()." % n, end='')
+
+
+# Utility functions/generators useful for testing
+
+
+def mpe_exception_values():
+    # all are R < L/2pi RFEvaluationError except as noted
+    yield 0.01, 144, 'nearfield'
+    yield 0.01, 239, 'nearfield'
+    yield 3, 0.1, 'nearfield'
+    yield 3, 1, 'nearfield'
+    yield 4, 1, 'nearfield'
+    yield 5, 1, 'nearfield'
+    yield 6, 1, 'nearfield'
+    yield 30000, 0.1, 'freq'  # freq 0.1 MHz too low
+    yield 30000, 101000, 'freq'  # freq 101000 too high
+
+
+def mpe_usable_values():
+    # meters, mhz
+    yield 1, 239
+    yield 3, 20
+    yield 3, 50
+    yield 3, 100
+    yield 3, 10000
+    yield 50, 1
+    yield 50, 100
+    yield 50, 420
+    yield 50, 2000
+    yield 30000, 10000  # 17 GW LOL, buy SEVERAL power plants
+
+
+def fcc_round(x):
+    """Round as in FCC 19-126 Table 1, p. 23."""
+    if x < 10:
+        return round(x, 1)
+    else:
+        return int(round(x))
+
+
+def test_fcc_round():
+    assert fcc_round(39.1234) == 39
+    assert fcc_round(22) == 22
+    assert fcc_round(22.0) == 22
+    assert fcc_round(2.1234) == 2.1
+    assert fcc_round(9.0) == 9.0
+    assert fcc_round(9.01234) == 9.0
+    assert fcc_round(3060.1234) == 3060
+
+
+def fcc_table():
+    """Source: FCC 19-126, page 23, Table 1."""
+    i = 0
+    reference_mw = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
+    for ghz in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1
+        for cm in [0.5, 1, 1.5, 2]:  # First 4 columns
+            yield ghz, cm, reference_mw[i]
+            i += 1

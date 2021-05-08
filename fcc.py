@@ -101,6 +101,15 @@ def exempt_watts_generic(meters, mhz):
         return erp_th, 'MPE wins'
 
 
+def is_exempt(watts, meters, mhz):
+    try:
+        threshold, method = exempt_watts_generic(meters, mhz)
+        return watts < threshold
+    except RFEvaluationError:
+        return False
+    # Do not catch general ValueError, which means mhz may be out of range.
+
+
 def exempt_milliwatts_sar(cm, ghz):
     """Calculate time-averaged power threshold for exemption, for radio
     frequency sources. (Exemption from routine RF exposure
@@ -130,6 +139,10 @@ def exempt_milliwatts_sar(cm, ghz):
     return p_threshold
 
 
+class RFEvaluationError(ValueError):
+    pass
+
+
 def exempt_watts_mpe(meters, mhz):
     """Calculate the effective radiated power threshold for exemption, for
     radio frequency sources, using the MPE method. Formulas based on
@@ -151,7 +164,7 @@ def exempt_watts_mpe(meters, mhz):
     if meters < l_over_2pi:
         l_str = str(round(l_over_2pi))
         evaluation_message = "R < L/2pi (%s < %s m). RF evaluation required."
-        raise ValueError(evaluation_message % (str(meters), l_str))
+        raise RFEvaluationError(evaluation_message % (str(meters), l_str))
     for i in range(len(cutpoints)):
         if i == len(cutpoints) - 1:
             raise ValueError("frequency out of range: %s MHz" % str(mhz))

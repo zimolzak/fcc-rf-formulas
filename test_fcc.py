@@ -17,6 +17,13 @@ def test_inverses():
     print("\nDid %d tests of inverses." % n)
 
 
+def test_is_exempt():
+    assert fcc.is_exempt(5, 1, 420) == True
+    assert fcc.is_exempt(5, 0.1, 420) == False
+    with pytest.raises(ValueError):
+        fcc.is_exempt(5, 0.1, 1234567890)
+
+
 def test_mpe_limits():
     with pytest.raises(ValueError):
         fcc.mpe_limits_cont_uncont_mwcm2(101000)

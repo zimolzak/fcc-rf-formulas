@@ -9,6 +9,43 @@ radiofrequency electromagnetic fields. FCC rule changes go into effect on May
 
 ```python
 import fcc
+
+fcc.is_compliant(150, 50, 20, 2.2, 300, 29, True, False)  # SSB phone dipole 300 ft away
+# (True, 'MPE')
+
+fcc.is_compliant(0.031, 100, 100, 0, 1/12/2.54, 300, True, False)  # 31 mW source nearby
+# (True, 'SAR')
+
+fcc.is_compliant(100, 50, 20, 2.2, 3, 30, True, True)  # SSB phone dipole 3 ft away, controlled
+# (True, 'evaluation')
+
+fcc.is_compliant(100, 50, 20, 2.2, 1, 30, True, True)  # SSB phone dipole 1 ft away, controlled
+# (False, 'evaluation')
+```
+
+The arguments to the function (first execution) mean (in order): 150 W at feedpoint, 50% usage, a mode with 20% duty
+(like SSB), 2.2 dBi gain (like a dipole), distance of 300 feet from antenna, 29 MHz, with ground reflection, and
+uncontrolled environment. The return value tells you whether you are in compliance (True/False), **and** the means by
+which compliance was determined (SAR exemption, MPE exemption, or full evaluation).
+
+```python
+fcc.rf_evaluation_report(60, 50, 20, 2.2, 6, 29, True)
+# {'Power density': 0.06065253059459946,
+#  'MPE controlled': 1.070154577883472,
+#  'MPE uncontrolled': 0.2140309155766944,
+#  'Distance controlled': 1.428408600226954,
+#  'Distance uncontrolled': 3.194018729752791,
+#  'Compliant controlled': True,
+#  'Compliant uncontrolled': True}
+```
+
+The function arguments mean (in order): 60 W at feedpoint, 50% usage, a mode with 20% duty (like SSB), 2.2 dBi gain
+(like a dipole), distance of 6 feet from antenna, 29 MHz, and with ground reflection.
+
+
+## Other useful examples
+
+```python
 fcc.exempt_milliwatts_sar(1, 0.45)
 # 44.372516027834514
 ```
@@ -21,7 +58,6 @@ is no more than" **44.4 milliwatts.** This method of exemption only
 applies to UHF or higher, not VHF or HF.
 
 ```python
-import fcc
 fcc.exempt_watts_mpe(1, 444)
 # 5.6832
 ```
@@ -44,20 +80,6 @@ fcc.exempt_watts_generic(0.16, 310)
 
 This calculates a power threshold by the most favorable method
 available.
-
-```python
-fcc.rf_evaluation_report(60, 50, 20, 2.2, 6, 29, True)
-# {'Power density': 0.06065253059459946,
-#  'MPE controlled': 1.070154577883472,
-#  'MPE uncontrolled': 0.2140309155766944,
-#  'Distance controlled': 1.428408600226954,
-#  'Distance uncontrolled': 3.194018729752791,
-#  'Compliant controlled': True,
-#  'Compliant uncontrolled': True}
-```
-
-The function arguments mean (in order): 60 W at feedpoint, 50% usage, a mode with 20% duty (like SSB), 2.2 dBi gain
-(like a dipole), distance of 6 feet from antenna, 29 MHz, and with ground reflection.
 
 Mind your units! They may be different between some function arguments and
 return values.
@@ -83,6 +105,10 @@ http://www.arrl.org/news/updated-radio-frequency-exposure-rules-become-effective
 Hare, Ed (W1RFI). *RF Exposure and You.* 1st ed., American Radio Relay
 League, 1998-2003. This is a perfectly lovely book.
 http://www.arrl.org/files/file/Technology/RFsafetyCommittee/RF+Exposure+and+You.pdf
+
+http://hintlink.com/power_density.htm
+ 
+https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
 
 
 ## Abbreviations/definitions

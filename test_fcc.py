@@ -14,7 +14,7 @@ def test_inverses():
             calc_feet = fcc.compliant_distance_ft(1, milliwatts, density)
             assert feet == pytest.approx(calc_feet)
             n += 1
-    print("\nDid %d tests of inverses." % n)
+    print("\n    Did %d tests of inverses." % n, end='')
 
 
 def test_is_exempt():
@@ -22,12 +22,12 @@ def test_is_exempt():
     assert fcc.is_exempt(5, 0.1, 420) is False
     with pytest.raises(ValueError):
         fcc.is_exempt(5, 0.1, 1234567890)
-    # fixme - Do lots more based on other tests (generic()): make global
+    # fixme - Do lots more based on other tests (generic()): insert global
 
 
 def test_is_good():
     assert fcc.is_good(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')
-    # fixme - do lots more (report()): make global
+    # fixme - do lots more (report()): insert global
 
 
 def test_mpe_limits_cont_uncont_mwcm2():
@@ -115,10 +115,9 @@ def test_rf_evaluation_report():
 
 
 def test_exempt_watts_generic():
-    for ghz in [0.3, 0.45, 0.835]:  # fixme - make global
+    for ghz in [0.3, 0.45, 0.835]:  # fixme - insert global
         for cm in [0.5, 1, 1.5, 2]:  # fixme - count up tests
             w, s = fcc.exempt_watts_generic(cm / 100, ghz * 1000)
-            print(str(round(w, 3)) + " W, " + str(s))
     pairs = [
         [1, 239],
         [3, 20],
@@ -138,7 +137,6 @@ def test_exempt_watts_generic():
     ]
     for k, v in pairs:  # fixme - count up tests
         w, s = fcc.exempt_watts_generic(k, v)
-        print(str(round(w, 3)) + " W, " + str(s))
     # Begin exception testing
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(20 / 100, 0.1 * 1000)
@@ -185,18 +183,13 @@ def test_fcc_round():
 
 def test_exempt_milliwatts_sar():
     result_list = []
-    reference = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
-    # reference is derived directly from FCC 19-126, Table 1.
+    reference_list = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
+    # reference_list is derived directly from FCC 19-126, Table 1.
     for f in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1  # fixme - make global
         for d in [0.5, 1, 1.5, 2]:  # First 4 columns # fixme - count up tests
             result = fcc.exempt_milliwatts_sar(d, f)
-            printme = round(result, 1)
-            compare = fcc_round(result)
-            print(printme, end='\t')
-            result_list.append(compare)
-        print()
-    print(result_list)
-    assert result_list == reference
+            result_list.append(fcc_round(result))
+    assert result_list == reference_list
     assert fcc_round(fcc.exempt_milliwatts_sar(40, 1.8)) == 3060
     # d     0   - 40
     # freq  0.3 -  6
@@ -212,42 +205,36 @@ def test_exempt_milliwatts_sar():
         fcc.exempt_milliwatts_sar(-1, 0.4)  # neg distance
 
 
-def t_erpth(d, f):
-    """This function is just used for printing"""
-    erp = fcc.exempt_watts_mpe(d, f)
-    print("%.0f m, %.0f MHz:\t%.1f W" % (d, f, erp))
-
-
 def test_exempt_watts_mpe():
     """We are not (yet) asserting return vals. No external FCC ref
     available.
     """
-    t_erpth(1, 239)
-    t_erpth(3, 20)
-    t_erpth(3, 50)
-    t_erpth(3, 100)
-    t_erpth(3, 10000)
-    t_erpth(50, 1)
-    t_erpth(50, 100)
-    t_erpth(50, 420)
-    t_erpth(50, 2000)
-    t_erpth(30000, 10000)  # 17 GW LOL, buy SEVERAL power plants
+    fcc.exempt_watts_mpe(1, 239)
+    fcc.exempt_watts_mpe(3, 20)
+    fcc.exempt_watts_mpe(3, 50)
+    fcc.exempt_watts_mpe(3, 100)
+    fcc.exempt_watts_mpe(3, 10000)
+    fcc.exempt_watts_mpe(50, 1)
+    fcc.exempt_watts_mpe(50, 100)
+    fcc.exempt_watts_mpe(50, 420)
+    fcc.exempt_watts_mpe(50, 2000)
+    fcc.exempt_watts_mpe(30000, 10000)  # 17 GW LOL, buy SEVERAL power plants
     # all are R < L/2pi except as noted
     with pytest.raises(ValueError):
-        t_erpth(0.01, 144)
+        fcc.exempt_watts_mpe(0.01, 144)
     with pytest.raises(ValueError):
-        t_erpth(0.01, 239)
+        fcc.exempt_watts_mpe(0.01, 239)
     with pytest.raises(ValueError):
-        t_erpth(3, 0.1)
+        fcc.exempt_watts_mpe(3, 0.1)
     with pytest.raises(ValueError):
-        t_erpth(3, 1)
+        fcc.exempt_watts_mpe(3, 1)
     with pytest.raises(ValueError):
-        t_erpth(4, 1)
+        fcc.exempt_watts_mpe(4, 1)
     with pytest.raises(ValueError):
-        t_erpth(5, 1)
+        fcc.exempt_watts_mpe(5, 1)
     with pytest.raises(ValueError):
-        t_erpth(6, 1)
+        fcc.exempt_watts_mpe(6, 1)
     with pytest.raises(ValueError):
-        t_erpth(30000, 0.1)  # freq 0.1 MHz too low
+        fcc.exempt_watts_mpe(30000, 0.1)  # freq 0.1 MHz too low
     with pytest.raises(ValueError):
-        t_erpth(30000, 101000)  # freq 101000 too high
+        fcc.exempt_watts_mpe(30000, 101000)  # freq 101000 too high

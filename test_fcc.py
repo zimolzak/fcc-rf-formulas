@@ -18,10 +18,30 @@ def test_inverses():
 
 
 def test_is_exempt():
-    assert fcc.is_exempt(5, 1, 420) is True
+    n = 0
+    # watts, m, mhz
+    assert fcc.is_exempt(5, 1, 420)
     assert fcc.is_exempt(5, 0.1, 420) is False
     with pytest.raises(ValueError):
         fcc.is_exempt(5, 0.1, 1234567890)
+    # fcc table, mpe exception values, mpe usable values
+    for ghz, cm, mw in fcc_table():
+        # watts, m, mhz are arguments to is_exempt()
+        w = mw / 1000
+        m = cm / 100
+        mhz = ghz * 1000
+        assert fcc.is_exempt(w * 0.9, m, mhz)
+        assert fcc.is_exempt(w * 1.1, m, mhz) is False
+        n += 2
+    for meters, mhz, why_exception in mpe_exception_values():
+        if why_exception == 'freq':
+            with pytest.raises(ValueError):
+                fcc.is_exempt(0.42, meters, mhz)
+        else:
+            assert fcc.is_exempt(0.42, meters, mhz) is False
+        n += 1
+    print("\n    Looped %d tests of is_exempt()." % n, end='')
+
     # fixme - Do lots more based on other tests (generic()): insert global
 
 
@@ -120,16 +140,16 @@ def test_rf_evaluation_report():
 
 
 def mpe_exception_values():
-    # all are R < L/2pi except as noted
-    yield 0.01, 144
-    yield 0.01, 239
-    yield 3, 0.1
-    yield 3, 1
-    yield 4, 1
-    yield 5, 1
-    yield 6, 1
-    yield 30000, 0.1  # freq 0.1 MHz too low
-    yield 30000, 101000  # freq 101000 too high
+    # all are R < L/2pi RFEvaluationError except as noted
+    yield 0.01, 144, 'nearfield'
+    yield 0.01, 239, 'nearfield'
+    yield 3, 0.1, 'nearfield'
+    yield 3, 1, 'nearfield'
+    yield 4, 1, 'nearfield'
+    yield 5, 1, 'nearfield'
+    yield 6, 1, 'nearfield'
+    yield 30000, 0.1, 'freq'  # freq 0.1 MHz too low
+    yield 30000, 101000, 'freq'  # freq 101000 too high
 
 
 def mpe_usable_values():
@@ -169,7 +189,7 @@ def test_exempt_watts_generic():
         fcc.exempt_watts_generic(20 / 100, 0.1 * 1000)
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(-1 / 100, 0.4 * 1000)
-    for meters, mhz in mpe_exception_values():
+    for meters, mhz, dummy in mpe_exception_values():
         with pytest.raises(ValueError):
             fcc.exempt_watts_generic(meters, mhz)
         n += 1
@@ -234,7 +254,7 @@ def test_exempt_watts_mpe():
     for meters, mhz in mpe_usable_values():
         fcc.exempt_watts_mpe(meters, mhz)  # throwaway
         n += 1
-    for meters, mhz in mpe_exception_values():
+    for meters, mhz, dummy in mpe_exception_values():
         with pytest.raises(ValueError):
             fcc.exempt_watts_mpe(meters, mhz)
         n += 1

@@ -18,14 +18,14 @@ def test_is_compliant():
         w = mw / 1000
         ft = cm / 30.48
         mhz = ghz * 1000
-        assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'exemption')
+        assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'SAR')
         # Shouldn't test w * 1.1, because some powers above MPE exemption will pass is_compliant() by eval.
         n += 1
     for meters, mhz in mpe_usable_values():
         # valid MPE thresholds
         w = fcc.exempt_watts_mpe(meters, mhz)
         ft = meters / 0.3048
-        assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'exemption')
+        assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'MPE')
         n += 1
     print("\n    Looped %d tests of is_compliant()." % n, end='')
 
@@ -142,8 +142,8 @@ def test_effective_isotropic_radiated_power():
 def test_is_exempt():
     n = 0
     # watts, m, mhz are arguments to is_exempt()
-    assert fcc.is_exempt(5, 1, 420)
-    assert fcc.is_exempt(5, 0.1, 420) is False
+    assert fcc.is_exempt(5, 1, 420) == (True, 'MPE')
+    assert fcc.is_exempt(5, 0.1, 420)[0] is False
     with pytest.raises(ValueError):
         fcc.is_exempt(5, 0.1, 1234567890)
     for ghz, cm, mw in fcc_table():
@@ -151,8 +151,8 @@ def test_is_exempt():
         w = mw / 1000
         m = cm / 100
         mhz = ghz * 1000
-        assert fcc.is_exempt(w * 0.9, m, mhz)
-        assert fcc.is_exempt(w * 1.1, m, mhz) is False
+        assert fcc.is_exempt(w * 0.9, m, mhz) == (True, 'SAR')
+        assert fcc.is_exempt(w * 1.1, m, mhz)[0] is False
         n += 2
     for meters, mhz, why_exception in mpe_exception_values():
         # known NON-exemption
@@ -160,13 +160,13 @@ def test_is_exempt():
             with pytest.raises(ValueError):
                 fcc.is_exempt(0.42, meters, mhz)  # watts doesn't matter if freq invalid
         else:
-            assert fcc.is_exempt(0.42, meters, mhz) is False  # watts don't matter in near field
+            assert fcc.is_exempt(0.42, meters, mhz)[0] is False  # watts don't matter in near field
         n += 1
     for meters, mhz in mpe_usable_values():
         # valid MPE thresholds
         w = fcc.exempt_watts_mpe(meters, mhz)
-        assert fcc.is_exempt(w * 0.9, meters, mhz)
-        assert fcc.is_exempt(w * 1.1, meters, mhz) is False
+        assert fcc.is_exempt(w * 0.9, meters, mhz) == (True, 'MPE')
+        assert fcc.is_exempt(w * 1.1, meters, mhz)[0] is False
         n += 2
     print("\n    Looped %d tests of is_exempt()." % n, end='')
 

@@ -9,8 +9,9 @@ import math
 def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
     """Return a boolean and a string."""
     meters = ft * 0.3048
-    if is_exempt(watts, meters, mhz):  # fixme - might have to check power vs ERP vs EIRP
-        return True, 'exemption'
+    ex, method = is_exempt(watts, meters, mhz)  # fixme - might have to check power vs ERP vs EIRP
+    if ex:
+        return True, method
     else:
         report = rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections)
         if controlled:
@@ -111,9 +112,9 @@ def is_exempt(watts, meters, mhz):
     """Return boolean."""
     try:
         threshold, method = exempt_watts_generic(meters, mhz)
-        return watts < threshold  # fixme - consider returning tuple of (True, method)
+        return watts < threshold, method
     except RFEvaluationError:
-        return False
+        return False, 'nearfield'
     # Do not catch general ValueError, which means mhz may be out of range.
 
 

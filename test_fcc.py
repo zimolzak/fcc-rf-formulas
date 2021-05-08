@@ -6,7 +6,9 @@ from fcc import CM_PER_FT, M_PER_FT
 
 def test_is_compliant():
     # w t duty db ft mhz ground contr
-    assert fcc.is_compliant(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')
+    assert fcc.is_compliant(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')  # FM HT at 1 ft
+    assert fcc.is_compliant(100, 50, 20, 2.2, 4, 29, False, False) == (True, 'evaluation')  # uncontrolled
+    assert fcc.is_compliant(100, 50, 20, 2.2, 4, 29, False, True) == (True, 'evaluation')  # controlled
     # These 5 args don't matter if exempt
     t = 100
     du = 100

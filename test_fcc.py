@@ -14,7 +14,7 @@ def test_inverses():
             calc_feet = fcc.compliant_distance_ft(1, milliwatts, density)
             assert feet == pytest.approx(calc_feet)
             n += 1
-    print("\n    Did %d tests of inverses." % n, end='')
+    print("\n    Looped %d tests of inverses." % n, end='')
 
 
 def test_is_exempt():
@@ -70,12 +70,17 @@ def test_power_density_mwcm2():
 
 
 def test_effective_isotropic_radiated_power():
-    for w in range(1, 20):  # fixme - nifty to count up tests
+    n = 0
+    for w in range(1, 20):
         assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 100, 100, 0)  # isotropic
+        n += 1
     for w in range(1, 20):
         assert w * 1000 * 10 == fcc.effective_isotropic_radiated_power(w, 100, 100, 10)  # 10 dB gain
+        n += 1
     for w in range(1, 20):
         assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 10, 10, 20)  # 20 dB, canceled by * 0.1 * 0.1
+        n += 1
+    print("\n    Looped %d tests of EIRP." % n, end='')
     with pytest.raises(TypeError):
         fcc.effective_isotropic_radiated_power(1000, 's', 100, 0)
     with pytest.raises(ValueError):
@@ -115,9 +120,11 @@ def test_rf_evaluation_report():
 
 
 def test_exempt_watts_generic():
+    n = 0
     for ghz in [0.3, 0.45, 0.835]:  # fixme - insert global
-        for cm in [0.5, 1, 1.5, 2]:  # fixme - count up tests
+        for cm in [0.5, 1, 1.5, 2]:
             w, s = fcc.exempt_watts_generic(cm / 100, ghz * 1000)
+            n += 1
     pairs = [
         [1, 239],
         [3, 20],
@@ -135,14 +142,15 @@ def test_exempt_watts_generic():
         [0.398, 120],  # 120 mhz no SAR. 39.8 cm dist, 250 cm wavelength
         [0.16, 310]  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
     ]
-    for k, v in pairs:  # fixme - count up tests
-        w, s = fcc.exempt_watts_generic(k, v)
-    # Begin exception testing
+    for k, v in pairs:
+        w, s = fcc.exempt_watts_generic(k, v)  # throwaway
+        n += 1
+    print("\n    Looped %d tests of exempt_watts_generic()." % n, end='')
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(20 / 100, 0.1 * 1000)
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(-1 / 100, 0.4 * 1000)
-    # fixme - these are copy/pasted from testing ERP: make global.
+    # fixme - these are copy/pasted from testing ERP: insert global.
     with pytest.raises(ValueError):
         fcc.exempt_watts_generic(0.01, 144)
     with pytest.raises(ValueError):
@@ -185,10 +193,13 @@ def test_exempt_milliwatts_sar():
     result_list = []
     reference_list = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
     # reference_list is derived directly from FCC 19-126, Table 1.
+    n = 0
     for f in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1  # fixme - make global
-        for d in [0.5, 1, 1.5, 2]:  # First 4 columns # fixme - count up tests
+        for d in [0.5, 1, 1.5, 2]:  # First 4 columns
             result = fcc.exempt_milliwatts_sar(d, f)
             result_list.append(fcc_round(result))
+            n += 1
+    print("\n    Looped %d tests of exempt_milliwatts_sar()." % n, end='')
     assert result_list == reference_list
     assert fcc_round(fcc.exempt_milliwatts_sar(40, 1.8)) == 3060
     # d     0   - 40
@@ -220,6 +231,7 @@ def test_exempt_watts_mpe():
     fcc.exempt_watts_mpe(50, 2000)
     fcc.exempt_watts_mpe(30000, 10000)  # 17 GW LOL, buy SEVERAL power plants
     # all are R < L/2pi except as noted
+    # fixme - make global
     with pytest.raises(ValueError):
         fcc.exempt_watts_mpe(0.01, 144)
     with pytest.raises(ValueError):

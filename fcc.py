@@ -6,6 +6,42 @@
 import math
 
 
+def is_good(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
+    """Return a boolean and a string."""
+    meters = ft * 0.3048
+    if is_exempt(watts, meters, mhz):  # fixme - might have to check power vs ERP vs EIRP
+        return True, 'exemption'
+    else:
+        report = rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections)
+        if controlled:
+            return report["Compliant controlled"], 'evaluation'
+        else:
+            return report["Compliant uncontrolled"], 'evaluation'
+
+
+# Evaluation functions ########
+
+
+def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
+    """Report on power density (mW/cm^2) given input power and distance; and on compliant distances (controlled &
+    uncontrolled environment) given input power. Return a dict.
+    """
+    eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
+    s = power_density_mwcm2(eirp, ft, ground_reflections)
+    limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
+    feet_controlled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_controlled)
+    feet_uncontrolled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_uncontrolled)
+    compliant_controlled = s < limit_controlled
+    compliant_uncontrolled = s < limit_uncontrolled
+    return {"Power density": s,
+            "MPE controlled": limit_controlled,
+            "MPE uncontrolled": limit_uncontrolled,
+            "Distance controlled": feet_controlled,
+            "Distance uncontrolled": feet_uncontrolled,
+            "Compliant controlled": compliant_controlled,
+            "Compliant uncontrolled": compliant_uncontrolled}
+
+
 def mpe_limits_cont_uncont_mwcm2(mhz):
     """Calculate MPE limit mW/cm^2 for controlled & uncontrolled
     environments, respectively. As a function of frequency in MHz.
@@ -37,6 +73,12 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     return centimeters / 30.48
 
 
+def power_density_mwcm2(eirp_mw, ft, ground_reflections):
+    """Calculate power density (mW/cm^2) given input power (mW) and distance"""
+    cm = ft * 30.48
+    return reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * (cm ** 2))
+
+
 def reflection_constant(ground_reflections):
     if type(ground_reflections) != bool:
         raise ValueError("ground_reflections must be boolean: %s" % str(ground_reflections))
@@ -58,43 +100,21 @@ def effective_isotropic_radiated_power(watts, t_average, duty, dbi):
     return milliwatts_average * (10 ** (dbi / 10))
 
 
-def is_good(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
-    """Return a boolean and a string."""
-    meters = ft * 0.3048
-    if is_exempt(watts, meters, mhz):  # fixme - might have to check power vs ERP vs EIRP
-        return True, 'exemption'
-    else:
-        report = rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections)
-        if controlled:
-            return report["Compliant controlled"], 'evaluation'
-        else:
-            return report["Compliant uncontrolled"], 'evaluation'
+# Exemption functions #########
 
 
-def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
-    """Report on power density (mW/cm^2) given input power and distance; and on compliant distances (controlled &
-    uncontrolled environment) given input power. Return a dict.
-    """
-    eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
-    s = power_density_mwcm2(eirp, ft, ground_reflections)
-    limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
-    feet_controlled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_controlled)
-    feet_uncontrolled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_uncontrolled)
-    compliant_controlled = s < limit_controlled
-    compliant_uncontrolled = s < limit_uncontrolled
-    return {"Power density": s,
-            "MPE controlled": limit_controlled,
-            "MPE uncontrolled": limit_uncontrolled,
-            "Distance controlled": feet_controlled,
-            "Distance uncontrolled": feet_uncontrolled,
-            "Compliant controlled": compliant_controlled,
-            "Compliant uncontrolled": compliant_uncontrolled}
+class RFEvaluationError(ValueError):
+    pass
 
 
-def power_density_mwcm2(eirp_mw, ft, ground_reflections):
-    """Calculate power density (mW/cm^2) given input power (mW) and distance"""
-    cm = ft * 30.48
-    return reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * (cm ** 2))
+def is_exempt(watts, meters, mhz):
+    """Return boolean."""
+    try:
+        threshold, method = exempt_watts_generic(meters, mhz)
+        return watts < threshold  # fixme - consider returning tuple of (True, method)
+    except RFEvaluationError:
+        return False
+    # Do not catch general ValueError, which means mhz may be out of range.
 
 
 def exempt_watts_generic(meters, mhz):
@@ -112,16 +132,6 @@ def exempt_watts_generic(meters, mhz):
         return p_th, 'SAR wins'
     else:
         return erp_th, 'MPE wins'
-
-
-def is_exempt(watts, meters, mhz):
-    """Return boolean."""
-    try:
-        threshold, method = exempt_watts_generic(meters, mhz)
-        return watts < threshold  # fixme - consider returning tuple of (True, method)
-    except RFEvaluationError:
-        return False
-    # Do not catch general ValueError, which means mhz may be out of range.
 
 
 def exempt_milliwatts_sar(cm, ghz):
@@ -151,10 +161,6 @@ def exempt_milliwatts_sar(cm, ghz):
     else:
         raise ValueError("distance out of range: %s cm" % str(cm))
     return p_threshold
-
-
-class RFEvaluationError(ValueError):
-    pass
 
 
 def exempt_watts_mpe(meters, mhz):

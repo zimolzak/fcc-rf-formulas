@@ -189,18 +189,23 @@ def test_fcc_round():
     assert fcc_round(3060.1234) == 3060
 
 
+def fcc_table():
+    """Source: FCC 19-126, page 23, Table 1."""
+    i = 0
+    reference_mw = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
+    for ghz in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1
+        for cm in [0.5, 1, 1.5, 2]:  # First 4 columns
+            yield ghz, cm, reference_mw[i]
+            i += 1
+
+
 def test_exempt_milliwatts_sar():
-    result_list = []
-    reference_list = [39, 65, 88, 110, 22, 44, 67, 89, 9.2, 25, 44, 66]
-    # reference_list is derived directly from FCC 19-126, Table 1.
     n = 0
-    for f in [0.3, 0.45, 0.835]:  # First 3 rows of Table 1  # fixme - make global
-        for d in [0.5, 1, 1.5, 2]:  # First 4 columns
-            result = fcc.exempt_milliwatts_sar(d, f)
-            result_list.append(fcc_round(result))
-            n += 1
+    for f, d, ref in fcc_table():
+        result = fcc.exempt_milliwatts_sar(d, f)
+        assert fcc_round(result) == ref
+        n += 1
     print("\n    Looped %d tests of exempt_milliwatts_sar()." % n, end='')
-    assert result_list == reference_list
     assert fcc_round(fcc.exempt_milliwatts_sar(40, 1.8)) == 3060
     # d     0   - 40
     # freq  0.3 -  6

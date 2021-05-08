@@ -1,6 +1,7 @@
 import pytest
 import fcc
 import math
+from fcc import CM_PER_FT, M_PER_FT
 
 
 def test_is_compliant():
@@ -16,7 +17,7 @@ def test_is_compliant():
     for ghz, cm, mw in fcc_table():
         # valid SAR thresholds
         w = mw / 1000
-        ft = cm / 30.48
+        ft = cm / CM_PER_FT
         mhz = ghz * 1000
         assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'SAR')
         # Shouldn't test w * 1.1, because some powers above MPE exemption will pass is_compliant() by eval.
@@ -24,7 +25,7 @@ def test_is_compliant():
     for meters, mhz in mpe_usable_values():
         # valid MPE thresholds
         w = fcc.exempt_watts_mpe(meters, mhz)
-        ft = meters / 0.3048
+        ft = meters / M_PER_FT
         assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'MPE')
         n += 1
     print("\n    Looped %d tests of is_compliant()." % n, end='')
@@ -41,7 +42,7 @@ def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
                      "Distance uncontrolled",
                      "Compliant controlled",
                      "Compliant uncontrolled"]
-    report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / 0.3048, mhz, ground)
+    report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / M_PER_FT, mhz, ground)
     for i, k in enumerate(keys_in_order):
         assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
 
@@ -89,14 +90,14 @@ def test_inverses():
 def test_power_density_mwcm2():
     # first principles
     cm = 100
-    feet = cm / 30.48
+    feet = cm / CM_PER_FT
     watts = 1000
     standard_density = watts / (4 * math.pi * (cm ** 2)) * 1000
     calculated_density = fcc.power_density_mwcm2(watts * 1000, feet, False)
     assert standard_density == pytest.approx(calculated_density)
     # web
     e = fcc.effective_isotropic_radiated_power(1, 100, 100, 2)
-    assert fcc.power_density_mwcm2(e, 3 / 0.3048, True) == pytest.approx(0.0036, abs=1e-4)
+    assert fcc.power_density_mwcm2(e, 3 / M_PER_FT, True) == pytest.approx(0.0036, abs=1e-4)
     # throwaway
     fcc.power_density_mwcm2(1000, feet, True)
     # exceptions

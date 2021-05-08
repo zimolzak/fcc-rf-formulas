@@ -5,10 +5,13 @@
 
 import math
 
+CM_PER_FT = 30.48
+M_PER_FT = CM_PER_FT / 100
+
 
 def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
     """Return a boolean and a string."""
-    meters = ft * 0.3048
+    meters = ft * M_PER_FT
     ex, method = is_exempt(watts, meters, mhz)  # fixme - might have to check power vs ERP vs EIRP
     if ex:
         return True, method
@@ -71,12 +74,12 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
     ground reflection.
     """
     centimeters = math.sqrt(gf * eirp_mw / (4 * math.pi * mpe_limit_mwcm2))
-    return centimeters / 30.48
+    return centimeters / CM_PER_FT
 
 
 def power_density_mwcm2(eirp_mw, ft, ground_reflections):
     """Calculate power density (mW/cm^2) given input power (mW) and distance"""
-    cm = ft * 30.48
+    cm = ft * CM_PER_FT
     return reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * (cm ** 2))
 
 

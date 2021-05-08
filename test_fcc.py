@@ -121,10 +121,10 @@ def test_rf_evaluation_report():
 
 def test_exempt_watts_generic():
     n = 0
-    for ghz in [0.3, 0.45, 0.835]:  # fixme - insert global
-        for cm in [0.5, 1, 1.5, 2]:
-            w, s = fcc.exempt_watts_generic(cm / 100, ghz * 1000)
-            n += 1
+    for ghz, cm, mw in fcc_table():
+        w, s = fcc.exempt_watts_generic(cm / 100, ghz * 1000)
+        assert fcc_round(w * 1000) == mw
+        n += 1
     pairs = [
         [1, 239],
         [3, 20],

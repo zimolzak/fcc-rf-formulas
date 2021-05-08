@@ -152,17 +152,10 @@ def test_exempt_watts_generic():
         w, s = fcc.exempt_watts_generic(cm / 100, ghz * 1000)
         assert fcc_round(w * 1000) == mw
         n += 1
+    for meters, mhz in mpe_usable_values():
+        w, s = fcc.exempt_watts_generic(meters, mhz)  # throwaway
+        n += 1
     pairs = [
-        [1, 239],
-        [3, 20],
-        [3, 50],
-        [3, 100],
-        [3, 10000],
-        [50, 1],
-        [50, 100],
-        [50, 420],
-        [50, 2000],
-        [30000, 10000], # fixme - insert global
         [41 / 100, 1 * 1000],  # fails SAR
         [20 / 100, 7 * 1000],  # fails SAR
         [99 / 100, 99 * 1000],  # fails SAR

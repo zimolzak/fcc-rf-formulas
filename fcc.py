@@ -58,6 +58,18 @@ def effective_isotropic_radiated_power(watts, t_average, duty, dbi):
     return milliwatts_average * (10 ** (dbi / 10))
 
 
+def is_good(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
+    meters = ft * 0.3048
+    if is_exempt(watts, meters, mhz):  # fixme - might have to check power vs ERP vs EIRP
+        return True, 'exemption'
+    else:
+        report = rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections)
+        if controlled:
+            return report["Compliant controlled"], 'evaluation'
+        else:
+            return report["Compliant uncontrolled"], 'evaluation'
+
+
 def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
     """Report on power density (mW/cm^2) given input power and distance; and on compliant distances (controlled &
     uncontrolled environment) given input power.

@@ -18,10 +18,16 @@ def test_inverses():
 
 
 def test_is_exempt():
-    assert fcc.is_exempt(5, 1, 420) == True
-    assert fcc.is_exempt(5, 0.1, 420) == False
+    assert fcc.is_exempt(5, 1, 420) is True
+    assert fcc.is_exempt(5, 0.1, 420) is False
     with pytest.raises(ValueError):
         fcc.is_exempt(5, 0.1, 1234567890)
+    # fixme - Do lots more based on other tests
+
+
+def test_is_good():
+    assert fcc.is_good(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')
+    # fixme - do lots more
 
 
 def test_mpe_limits():

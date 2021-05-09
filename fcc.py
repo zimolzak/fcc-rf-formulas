@@ -18,10 +18,15 @@ class PoweredAntenna:
         :param duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
         :param dbi: Gain relative to isotropic (decibels)
         """
+        if not (0 <= t_average <= 100 and 0 <= duty <= 100):
+            raise ValueError("t_average / duty out of range: %s / %s" % (str(t_average), str(duty)))
         self.watts = watts
         self.t_average = t_average
         self.duty = duty
         self.dbi = dbi
+        # Calculations
+        milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
+        self.effective_isotropic_radiated_power = milliwatts_average * (10 ** (dbi / 10))
 
 
 class RFEvaluationReport:
@@ -40,12 +45,11 @@ class RFEvaluationReport:
         self.mhz = mhz
         self.ground_reflections = ground_reflections
         # Calculations
-        self.eirp = effective_isotropic_radiated_power(antenna)
-        self.power_density = power_density_mwcm2(self.eirp, ft, ground_reflections)
+        self.power_density = power_density_mwcm2(antenna.effective_isotropic_radiated_power, ft, ground_reflections)
         self.power_density_c, self.power_density_u = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
         k = reflection_constant(ground_reflections)
-        self.ft_c = compliant_distance_ft(k, self.eirp, self.power_density_c)
-        self.ft_u = compliant_distance_ft(k, self.eirp, self.power_density_u)
+        self.ft_c = compliant_distance_ft(k, antenna.effective_isotropic_radiated_power, self.power_density_c)
+        self.ft_u = compliant_distance_ft(k, antenna.effective_isotropic_radiated_power, self.power_density_u)
         self.compliant_c = self.power_density < self.power_density_c
         self.compliant_u = self.power_density < self.power_density_u
         self._calculation_list = (self.power_density, self.power_density_c, self.power_density_u, self.ft_c, self.ft_u,
@@ -150,23 +154,6 @@ def reflection_constant(ground_reflections: bool) -> float:
         return 1
     else:
         return 1.6 * 1.6  # source: OET #65 pp. 20-21. EPA 520/6-85-011.
-
-
-def effective_isotropic_radiated_power(antenna: PoweredAntenna) -> float:
-    """Calculate EIRP from feedpoint power, accounting for antenna gain and various time averaging of usage and mode.
-
-    :param antenna:
-    :return: Effective isotropic radiated power (milliwatts, NOTE change in units)
-    :raises ValueError: if t_average or duty are not valid percentages (0 - 100 inclusive)
-    """
-    watts = antenna.watts
-    duty = antenna.duty
-    t_average = antenna.t_average
-    dbi = antenna.dbi
-    if not (0 <= t_average <= 100 and 0 <= duty <= 100):
-        raise ValueError("t_average / duty out of range: %s / %s" % (str(t_average), str(duty)))
-    milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
-    return milliwatts_average * (10 ** (dbi / 10))
 
 
 # Exemption functions #########

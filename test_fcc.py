@@ -104,7 +104,7 @@ def test_power_density_mwcm2():
     calculated_density = fcc.power_density_mwcm2(watts * 1000, feet, False)
     assert standard_density == pytest.approx(calculated_density)
     # web
-    e = fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1, 100, 100, 2))
+    e = fcc.PoweredAntenna(1, 100, 100, 2).effective_isotropic_radiated_power
     assert fcc.power_density_mwcm2(e, 3 / M_PER_FT, True) == pytest.approx(0.0036, abs=1e-4)
     # throwaway
     fcc.power_density_mwcm2(1000, feet, True)
@@ -122,27 +122,27 @@ def test_power_density_mwcm2():
 def test_effective_isotropic_radiated_power():
     n = 0
     for w in range(1, 20):
-        assert w * 1000 == fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(w, 100, 100, 0))  # isotropic
+        assert w * 1000 == fcc.PoweredAntenna(w, 100, 100, 0).effective_isotropic_radiated_power  # isotropic
         n += 1
     for w in range(1, 20):
-        assert w * 1000 * 10 == fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(w, 100, 100, 10))  # 10 dB gain
+        assert w * 1000 * 10 == fcc.PoweredAntenna(w, 100, 100, 10).effective_isotropic_radiated_power  # 10 dB gain
         n += 1
     for w in range(1, 20):
-        assert w * 1000 == fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(w, 10, 10, 20))  # 20 dB, canceled by * 0.1 * 0.1
+        assert w * 1000 == fcc.PoweredAntenna(w, 10, 10, 20).effective_isotropic_radiated_power  # 20 dB, canceled by * 0.1 * 0.1
         n += 1
     print("\n    Looped %d tests of EIRP." % n, end='')
     with pytest.raises(TypeError):
-        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, 's', 100, 0))
+        fcc.PoweredAntenna(1000, 's', 100, 0)
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, -3.1, 100, 0))
+        fcc.PoweredAntenna(1000, -3.1, 100, 0)
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, 110, 50, 0))
+        fcc.PoweredAntenna(1000, 110, 50, 0)
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, 100, 9999, 0))
+        fcc.PoweredAntenna(1000, 100, 9999, 0)
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, 100, -50, 0))
+        fcc.PoweredAntenna(1000, 100, -50, 0)
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, -42, -50, 0))
+        fcc.PoweredAntenna(1000, -42, -50, 0)
 
 
 # Exemption ########

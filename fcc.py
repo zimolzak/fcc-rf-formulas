@@ -7,13 +7,6 @@ import math
 
 CM_PER_FT = 30.48
 M_PER_FT = CM_PER_FT / 100
-REPORT_KEYS = ["Power density (mW/cm^2)",
-               "MPE controlled (mW/cm^2)",
-               "MPE uncontrolled (mW/cm^2)",
-               "Distance controlled (ft)",
-               "Distance uncontrolled (ft)",
-               "Compliant controlled",
-               "Compliant uncontrolled"]
 
 
 class PoweredAntenna:
@@ -30,6 +23,42 @@ class PoweredAntenna:
         self.t_average = t_average
         self.duty = duty
         self.dbi = dbi
+
+
+class RFEvaluationReport:
+    """Perform an RF evaluation of antenna/mode setup. Determine power density (mW/cm^2) given input power and distance,
+    allowed power density, and compliant distances (controlled & uncontrolled environment)."""
+    def __init__(self, antenna: PoweredAntenna, ft: float, mhz: float, ground_reflections: bool):
+        """
+        :param antenna:
+        :param ft: Distance from center of ANT to area of interest (feet)
+        :param mhz: Frequency of RF radiation, (megahertz)
+        :param ground_reflections: Whether to account for radiation coming from ground reflections
+        """
+        self.antenna = antenna
+        self.ft = ft
+        self.mhz = mhz
+        self.ground_reflections = ground_reflections
+        # Calculations
+        self.eirp = effective_isotropic_radiated_power(antenna)
+        self.power_density = power_density_mwcm2(self.eirp, ft, ground_reflections)
+        self.power_density_c, self.power_density_u = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
+        k = reflection_constant(ground_reflections)
+        self.ft_c = compliant_distance_ft(k, self.eirp, self.power_density_c)
+        self.ft_u = compliant_distance_ft(k, self.eirp, self.power_density_u)
+        self.compliant_c = self.power_density < self.power_density_c
+        self.compliant_u = self.power_density < self.power_density_u
+        self._calculation_list = (self.power_density, self.power_density_c, self.power_density_u, self.ft_c, self.ft_u,
+                                  self.compliant_c, self.compliant_u)  # tuple in specific order, for testing
+
+    def __str__(self):
+        return """Power density (mW/cm^2): %s
+MPE controlled (mW/cm^2): %s
+MPE uncontrolled (mW/cm^2): %s
+Distance controlled (ft): %s
+Distance uncontrolled (ft): %s
+Compliant controlled: %s
+Compliant uncontrolled: %s""" % self._calculation_list
 
 
 def is_compliant(antenna, ft, mhz, ground_reflections, controlled):
@@ -49,40 +78,14 @@ def is_compliant(antenna, ft, mhz, ground_reflections, controlled):
     if ex:
         return True, method
     else:
-        report = rf_evaluation_report(antenna, ft, mhz, ground_reflections)
+        report = RFEvaluationReport(antenna, ft, mhz, ground_reflections)
         if controlled:
-            return report["Compliant controlled"], 'evaluation'
+            return report.compliant_c, 'evaluation'
         else:
-            return report["Compliant uncontrolled"], 'evaluation'
+            return report.compliant_u, 'evaluation'
 
 
 # Evaluation functions ########
-
-
-def rf_evaluation_report(antenna, ft, mhz, ground_reflections):
-    """Perform an RF evaluation of antenna/mode setup. Determine power density (mW/cm^2) given input power and distance,
-    allowed power density, and compliant distances (controlled & uncontrolled environment).
-
-    :param PoweredAntenna antenna:
-    :param float ft: Distance from center of ANT to area of interest (feet)
-    :param float mhz: Frequency of RF radiation, (megahertz)
-    :param bool ground_reflections: Whether to account for radiation coming from ground reflections
-    :return: A dict describing power density (mW/cm^2), compliant distances (ft), and booleans describing compliance.
-    :rtype: dict
-    """
-    eirp = effective_isotropic_radiated_power(antenna)
-    s = power_density_mwcm2(eirp, ft, ground_reflections)
-    s_c, s_u = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
-    ft_c = compliant_distance_ft(reflection_constant(ground_reflections), eirp, s_c)
-    ft_u = compliant_distance_ft(reflection_constant(ground_reflections), eirp, s_u)
-    compliant_c = s < s_c
-    compliant_u = s < s_u
-    report_values = [s, s_c, s_u, ft_c, ft_u, compliant_c, compliant_u]
-    report = {}
-    for i, v in enumerate(report_values):
-        k = REPORT_KEYS[i]
-        report[k] = v
-    return report
 
 
 def mpe_limits_cont_uncont_mwcm2(mhz):

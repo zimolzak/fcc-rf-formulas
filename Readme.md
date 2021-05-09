@@ -33,16 +33,17 @@ uncontrolled environment. The return value tells you whether you are in complian
 which compliance was determined (SAR exemption, MPE exemption, or full evaluation).
 
 ```python
+import fcc
 ssb60 = fcc.PoweredAntenna(60, 50, 20, 2.2)
 
-fcc.rf_evaluation_report(ssb60, 6, 29, True)
-# {'Power density': 0.06065253059459946,
-#  'MPE controlled': 1.070154577883472,
-#  'MPE uncontrolled': 0.2140309155766944,
-#  'Distance controlled': 1.428408600226954,
-#  'Distance uncontrolled': 3.194018729752791,
-#  'Compliant controlled': True,
-#  'Compliant uncontrolled': True}
+print(fcc.RFEvaluationReport(ssb60, 6, 29, True))
+# Power density (mW/cm^2): 0.06065253059459946
+# MPE controlled (mW/cm^2): 1.070154577883472
+# MPE uncontrolled (mW/cm^2): 0.2140309155766944
+# Distance controlled (ft): 1.428408600226954
+# Distance uncontrolled (ft): 3.194018729752791
+# Compliant controlled: True
+# Compliant uncontrolled: True
 ```
 
 The function arguments mean (in order): 60 W at feedpoint, 50% usage, a mode with 20% duty (like SSB), 2.2 dBi gain

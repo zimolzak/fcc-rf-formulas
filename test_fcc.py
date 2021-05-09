@@ -1,7 +1,7 @@
 import pytest
 import fcc
 import math
-from fcc import CM_PER_FT, M_PER_FT, REPORT_KEYS
+from fcc import CM_PER_FT, M_PER_FT
 
 
 def test_is_compliant():
@@ -49,9 +49,9 @@ def test_is_compliant():
 
 def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
     ant = fcc.PoweredAntenna(pwr, 100, 100, gain)
-    report = fcc.rf_evaluation_report(ant, meters / M_PER_FT, mhz, ground)
-    for i, k in enumerate(REPORT_KEYS):
-        assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
+    report = fcc.RFEvaluationReport(ant, meters / M_PER_FT, mhz, ground)
+    for i, v in enumerate(report._calculation_list):
+        assert v == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
 
 
 def test_rf_evaluation_report():
@@ -63,7 +63,7 @@ def test_rf_evaluation_report():
     one_web(1500, 2.2, 2, 3.9, True, [12.6784, 59.18, 11.84, 3.09, 6.84, True, False])  # 80 m, MOAR POWAR
     one_web(200, 2.2, 2, 10.110, True, [1.6905, 8.81, 1.77, 2.93, 6.48, True, True])  # 30 m
     one_web(5, 2.2, 0.1, 145.170, False, [6.6033, 1.01, 0.21, 0.89, 1.94, False, False], 0.06)  # HT on 2m
-    fcc.rf_evaluation_report(fcc.PoweredAntenna(60, 50, 20, 2.2), 6, 29, True)  # from readme, throwaway
+    fcc.RFEvaluationReport(fcc.PoweredAntenna(60, 50, 20, 2.2), 6, 29, True)  # from readme, throwaway
 
 
 def test_mpe_limits_cont_uncont_mwcm2():

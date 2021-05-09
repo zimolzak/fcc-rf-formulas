@@ -7,6 +7,13 @@ import math
 
 CM_PER_FT = 30.48
 M_PER_FT = CM_PER_FT / 100
+REPORT_KEYS = ["Power density",
+               "MPE controlled",
+               "MPE uncontrolled",
+               "Distance controlled",
+               "Distance uncontrolled",
+               "Compliant controlled",
+               "Compliant uncontrolled"]
 
 
 def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
@@ -55,18 +62,17 @@ def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflection
     """
     eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
     s = power_density_mwcm2(eirp, ft, ground_reflections)
-    limit_controlled, limit_uncontrolled = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
-    feet_controlled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_controlled)
-    feet_uncontrolled = compliant_distance_ft(reflection_constant(ground_reflections), eirp, limit_uncontrolled)
-    compliant_controlled = s < limit_controlled
-    compliant_uncontrolled = s < limit_uncontrolled
-    return {"Power density": s,
-            "MPE controlled": limit_controlled,
-            "MPE uncontrolled": limit_uncontrolled,
-            "Distance controlled": feet_controlled,
-            "Distance uncontrolled": feet_uncontrolled,
-            "Compliant controlled": compliant_controlled,
-            "Compliant uncontrolled": compliant_uncontrolled}
+    s_c, s_u = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
+    ft_c = compliant_distance_ft(reflection_constant(ground_reflections), eirp, s_c)
+    ft_u = compliant_distance_ft(reflection_constant(ground_reflections), eirp, s_u)
+    compliant_c = s < s_c
+    compliant_u = s < s_u
+    report_values = [s, s_c, s_u, ft_c, ft_u, compliant_c, compliant_u]
+    report = {}
+    for i, v in enumerate(report_values):
+        k = REPORT_KEYS[i]
+        report[k] = v
+    return report
 
 
 def mpe_limits_cont_uncont_mwcm2(mhz):

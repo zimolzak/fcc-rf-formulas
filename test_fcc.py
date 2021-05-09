@@ -1,7 +1,7 @@
 import pytest
 import fcc
 import math
-from fcc import CM_PER_FT, M_PER_FT
+from fcc import CM_PER_FT, M_PER_FT, REPORT_KEYS
 
 
 def test_is_compliant():
@@ -37,15 +37,8 @@ def test_is_compliant():
 
 
 def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
-    keys_in_order = ["Power density",
-                     "MPE controlled",
-                     "MPE uncontrolled",
-                     "Distance controlled",
-                     "Distance uncontrolled",
-                     "Compliant controlled",
-                     "Compliant uncontrolled"]  # pretty fragile
     report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / M_PER_FT, mhz, ground)
-    for i, k in enumerate(keys_in_order):
+    for i, k in enumerate(REPORT_KEYS):
         assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
 
 

@@ -49,7 +49,7 @@ def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, contr
 def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
     """Perform an RF evaluation of antenna/mode setup. Determine power density (mW/cm^2) given input power and distance,
     allowed power density, and compliant distances (controlled & uncontrolled environment).
-    
+
     :param float watts: Power seen at antenna feedpoint (*after* feedline loss)
     :param float t_average: Ranges 0 to 100, characteristic of how much you operate
     :param float duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB

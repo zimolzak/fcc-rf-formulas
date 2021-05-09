@@ -32,6 +32,41 @@ class PoweredAntenna:
         self.dbi = dbi
 
 
+class RFEvaluationReport:
+    def __init__(self, antenna, ft, mhz, ground_reflections):
+        """
+
+        :param antenna:
+        :param ft:
+        :param mhz:
+        :param ground_reflections:
+        """
+        self.antenna = antenna
+        self.ft = ft
+        self.mhz = mhz
+        self.ground_reflections = ground_reflections
+        # Calculations
+        self.eirp = effective_isotropic_radiated_power(antenna)
+        self.power_density = power_density_mwcm2(self.eirp, ft, ground_reflections)
+        self.power_density_c, self.power_density_u = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
+        k = reflection_constant(ground_reflections)
+        self.ft_c = compliant_distance_ft(k, self.eirp, self.power_density_c)
+        self.ft_u = compliant_distance_ft(k, self.eirp, self.power_density_u)
+        self.compliant_c = self.power_density < self.power_density_c
+        self.compliant_u = self.power_density < self.power_density_u
+        self._calculation_list = (self.power_density, self.power_density_c, self.power_density_u, self.ft_c, self.ft_u,
+                                  self.compliant_c, self.compliant_u)  # tuple in specific order, for testing
+
+    def __str__(self):
+        return """Power density (mW/cm^2): %s
+MPE controlled (mW/cm^2): %s
+MPE uncontrolled (mW/cm^2): %s
+Distance controlled (ft): %s
+Distance uncontrolled (ft): %s
+Compliant controlled: %s
+Compliant uncontrolled: %s""" % self._calculation_list
+
+
 def is_compliant(antenna, ft, mhz, ground_reflections, controlled):
     """Determine whether a given combination of (antenna, power, frequency, distance) is compliant in general, by a
     complete trial of methods. Either uses SAR exemption, MPE exemption, or evaluation.

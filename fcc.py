@@ -7,11 +7,11 @@ import math
 
 CM_PER_FT = 30.48
 M_PER_FT = CM_PER_FT / 100
-REPORT_KEYS = ["Power density",
-               "MPE controlled",
-               "MPE uncontrolled",
-               "Distance controlled",
-               "Distance uncontrolled",
+REPORT_KEYS = ["Power density (mW/cm^2)",
+               "MPE controlled (mW/cm^2)",
+               "MPE uncontrolled (mW/cm^2)",
+               "Distance controlled (ft)",
+               "Distance uncontrolled (ft)",
                "Compliant controlled",
                "Compliant uncontrolled"]
 

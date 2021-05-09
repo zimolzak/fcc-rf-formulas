@@ -9,6 +9,11 @@ def test_is_compliant():
     assert fcc.is_compliant(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')  # FM HT at 1 ft
     assert fcc.is_compliant(100, 50, 20, 2.2, 4, 29, False, False) == (True, 'evaluation')  # uncontrolled
     assert fcc.is_compliant(100, 50, 20, 2.2, 4, 29, False, True) == (True, 'evaluation')  # controlled
+    #  from the readme (throwaway)
+    fcc.is_compliant(150, 50, 20, 2.2, 300, 29, True, False)  # SSB phone dipole 300 ft away
+    fcc.is_compliant(0.031, 100, 100, 0, 1 / 12 / 2.54, 300, True, False)  # 31 mW source nearby
+    fcc.is_compliant(100, 50, 20, 2.2, 3, 30, True, True)  # SSB phone dipole 3 ft away, controlled
+    fcc.is_compliant(100, 50, 20, 2.2, 1, 30, True, True)  # SSB phone dipole 1 ft away, controlled
     # These 5 args don't matter if exempt
     t = 100
     du = 100
@@ -51,6 +56,7 @@ def test_rf_evaluation_report():
     one_web(1500, 2.2, 2, 3.9, True, [12.6784, 59.18, 11.84, 3.09, 6.84, True, False])  # 80 m, MOAR POWAR
     one_web(200, 2.2, 2, 10.110, True, [1.6905, 8.81, 1.77, 2.93, 6.48, True, True])  # 30 m
     one_web(5, 2.2, 0.1, 145.170, False, [6.6033, 1.01, 0.21, 0.89, 1.94, False, False], 0.06)  # HT on 2m
+    fcc.rf_evaluation_report(60, 50, 20, 2.2, 6, 29, True) # from readme, throwaway
 
 
 def test_mpe_limits_cont_uncont_mwcm2():
@@ -176,15 +182,16 @@ def test_exempt_watts_generic():
     for meters, mhz in mpe_usable_values():
         w, s = fcc.exempt_watts_generic(meters, mhz)  # throwaway
         n += 1
-    pairs = [
+    valid_throwaway_pairs = [
         [41 / 100, 1 * 1000],  # fails SAR
         [20 / 100, 7 * 1000],  # fails SAR
         [99 / 100, 99 * 1000],  # fails SAR
         [0.398, 120],  # 120 mhz no SAR. 39.8 cm dist, 250 cm wavelength
         [0.16, 310],  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
-        [0.40, 1000]  # another overlap, even rarer MPE wins
+        [0.40, 1000],  # another overlap, even rarer MPE wins
+        [0.01, 450]  # from readme, throwaway
     ]
-    for k, v in pairs:
+    for k, v in valid_throwaway_pairs:
         w, s = fcc.exempt_watts_generic(k, v)  # throwaway
         n += 1
     with pytest.raises(ValueError):
@@ -206,6 +213,7 @@ def test_exempt_milliwatts_sar():
         n += 1
     print("\n    Looped %d tests of exempt_milliwatts_sar()." % n, end='')
     assert fcc_round(fcc.exempt_milliwatts_sar(40, 1.8)) == 3060
+    fcc.exempt_milliwatts_sar(1, 0.45)  # from readme, throwaway
     # d     0   - 40
     # freq  0.3 -  6
     with pytest.raises(ValueError):
@@ -263,6 +271,7 @@ def mpe_usable_values():
     yield 50, 420
     yield 50, 2000
     yield 30000, 10000  # 17 GW LOL, buy SEVERAL power plants
+    yield 1, 444  # from readme
 
 
 def fcc_round(x):

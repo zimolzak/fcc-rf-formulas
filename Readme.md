@@ -10,16 +10,20 @@ radiofrequency electromagnetic fields. FCC rule changes go into effect on May
 ```python
 import fcc
 
-fcc.is_compliant(150, 50, 20, 2.2, 300, 29, True, False)  # SSB phone dipole 300 ft away
+ssb150 = fcc.PoweredAntenna(150, 50, 20, 2.2)
+ssb100 = fcc.PoweredAntenna(100, 50, 20, 2.2)
+little = fcc.PoweredAntenna(0.031, 100, 100, 0)
+
+fcc.is_compliant(ssb150, 300, 29, True, False)  # SSB phone dipole 300 ft away
 # (True, 'MPE')
 
-fcc.is_compliant(0.031, 100, 100, 0, 1/12/2.54, 300, True, False)  # 31 mW source nearby
+fcc.is_compliant(little, 1/12/2.54, 300, True, False)  # 31 mW source nearby
 # (True, 'SAR')
 
-fcc.is_compliant(100, 50, 20, 2.2, 3, 30, True, True)  # SSB phone dipole 3 ft away, controlled
+fcc.is_compliant(ssb100, 3, 30, True, True)  # SSB phone dipole 3 ft away, controlled
 # (True, 'evaluation')
 
-fcc.is_compliant(100, 50, 20, 2.2, 1, 30, True, True)  # SSB phone dipole 1 ft away, controlled
+fcc.is_compliant(ssb100, 1, 30, True, True)  # SSB phone dipole 1 ft away, controlled
 # (False, 'evaluation')
 ```
 
@@ -29,7 +33,9 @@ uncontrolled environment. The return value tells you whether you are in complian
 which compliance was determined (SAR exemption, MPE exemption, or full evaluation).
 
 ```python
-fcc.rf_evaluation_report(60, 50, 20, 2.2, 6, 29, True)
+ssb60 = fcc.PoweredAntenna(60, 50, 20, 2.2)
+
+fcc.rf_evaluation_report(ssb60, 6, 29, True)
 # {'Power density': 0.06065253059459946,
 #  'MPE controlled': 1.070154577883472,
 #  'MPE uncontrolled': 0.2140309155766944,

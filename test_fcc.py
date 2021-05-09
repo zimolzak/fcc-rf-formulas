@@ -6,14 +6,18 @@ from fcc import CM_PER_FT, M_PER_FT, REPORT_KEYS
 
 def test_is_compliant():
     # w t duty db ft mhz ground contr
-    assert fcc.is_compliant(5, 50, 100, 2.2, 1, 420, False, True) == (True, 'evaluation')  # FM HT at 1 ft
-    assert fcc.is_compliant(100, 50, 20, 2.2, 4, 29, False, False) == (True, 'evaluation')  # uncontrolled
-    assert fcc.is_compliant(100, 50, 20, 2.2, 4, 29, False, True) == (True, 'evaluation')  # controlled
+    fmht = fcc.PoweredAntenna(5, 50, 100, 2.2)
+    ssb = fcc.PoweredAntenna(100, 50, 20, 2.2)
+    ssb150 = fcc.PoweredAntenna(100, 50, 20, 2.2)
+    little = fcc.PoweredAntenna(0.031, 100, 100, 0)
+    assert fcc.is_compliant(fmht, 1, 420, False, True) == (True, 'evaluation')  # FM HT at 1 ft
+    assert fcc.is_compliant(ssb, 4, 29, False, False) == (True, 'evaluation')  # uncontrolled
+    assert fcc.is_compliant(ssb, 4, 29, False, True) == (True, 'evaluation')  # controlled
     #  from the readme (throwaway)
-    fcc.is_compliant(150, 50, 20, 2.2, 300, 29, True, False)  # SSB phone dipole 300 ft away
-    fcc.is_compliant(0.031, 100, 100, 0, 1 / 12 / 2.54, 300, True, False)  # 31 mW source nearby
-    fcc.is_compliant(100, 50, 20, 2.2, 3, 30, True, True)  # SSB phone dipole 3 ft away, controlled
-    fcc.is_compliant(100, 50, 20, 2.2, 1, 30, True, True)  # SSB phone dipole 1 ft away, controlled
+    fcc.is_compliant(ssb150, 300, 29, True, False)  # SSB phone dipole 300 ft away
+    fcc.is_compliant(little, 1 / 12 / 2.54, 300, True, False)  # 31 mW source nearby
+    fcc.is_compliant(ssb, 3, 30, True, True)  # SSB phone dipole 3 ft away, controlled
+    fcc.is_compliant(ssb, 1, 30, True, True)  # SSB phone dipole 1 ft away, controlled
     # These 5 args don't matter if exempt
     t = 100
     du = 100
@@ -26,14 +30,16 @@ def test_is_compliant():
         w = mw / 1000
         ft = cm / CM_PER_FT
         mhz = ghz * 1000
-        assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'SAR')
+        ant = fcc.PoweredAntenna(w * 0.9, t, du, db)
+        assert fcc.is_compliant(ant, ft, mhz, gr, co) == (True, 'SAR')
         # Shouldn't test w * 1.1, because some powers above MPE exemption will pass is_compliant() by eval.
         n += 1
     for meters, mhz in mpe_usable_values():
         # valid MPE thresholds
         w = fcc.exempt_watts_mpe(meters, mhz)
         ft = meters / M_PER_FT
-        assert fcc.is_compliant(w * 0.9, t, du, db, ft, mhz, gr, co) == (True, 'MPE')
+        ant = fcc.PoweredAntenna(w * 0.9, t, du, db)
+        assert fcc.is_compliant(ant, ft, mhz, gr, co) == (True, 'MPE')
         n += 1
     print("\n    Looped %d tests of is_compliant()." % n, end='')
 
@@ -42,7 +48,8 @@ def test_is_compliant():
 
 
 def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
-    report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / M_PER_FT, mhz, ground)
+    ant = fcc.PoweredAntenna(pwr, 100, 100, gain)
+    report = fcc.rf_evaluation_report(ant, meters / M_PER_FT, mhz, ground)
     for i, k in enumerate(REPORT_KEYS):
         assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
 
@@ -56,7 +63,7 @@ def test_rf_evaluation_report():
     one_web(1500, 2.2, 2, 3.9, True, [12.6784, 59.18, 11.84, 3.09, 6.84, True, False])  # 80 m, MOAR POWAR
     one_web(200, 2.2, 2, 10.110, True, [1.6905, 8.81, 1.77, 2.93, 6.48, True, True])  # 30 m
     one_web(5, 2.2, 0.1, 145.170, False, [6.6033, 1.01, 0.21, 0.89, 1.94, False, False], 0.06)  # HT on 2m
-    fcc.rf_evaluation_report(60, 50, 20, 2.2, 6, 29, True) # from readme, throwaway
+    fcc.rf_evaluation_report(fcc.PoweredAntenna(60, 50, 20, 2.2), 6, 29, True)  # from readme, throwaway
 
 
 def test_mpe_limits_cont_uncont_mwcm2():
@@ -97,7 +104,7 @@ def test_power_density_mwcm2():
     calculated_density = fcc.power_density_mwcm2(watts * 1000, feet, False)
     assert standard_density == pytest.approx(calculated_density)
     # web
-    e = fcc.effective_isotropic_radiated_power(1, 100, 100, 2)
+    e = fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1, 100, 100, 2))
     assert fcc.power_density_mwcm2(e, 3 / M_PER_FT, True) == pytest.approx(0.0036, abs=1e-4)
     # throwaway
     fcc.power_density_mwcm2(1000, feet, True)
@@ -115,27 +122,27 @@ def test_power_density_mwcm2():
 def test_effective_isotropic_radiated_power():
     n = 0
     for w in range(1, 20):
-        assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 100, 100, 0)  # isotropic
+        assert w * 1000 == fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(w, 100, 100, 0))  # isotropic
         n += 1
     for w in range(1, 20):
-        assert w * 1000 * 10 == fcc.effective_isotropic_radiated_power(w, 100, 100, 10)  # 10 dB gain
+        assert w * 1000 * 10 == fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(w, 100, 100, 10))  # 10 dB gain
         n += 1
     for w in range(1, 20):
-        assert w * 1000 == fcc.effective_isotropic_radiated_power(w, 10, 10, 20)  # 20 dB, canceled by * 0.1 * 0.1
+        assert w * 1000 == fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(w, 10, 10, 20))  # 20 dB, canceled by * 0.1 * 0.1
         n += 1
     print("\n    Looped %d tests of EIRP." % n, end='')
     with pytest.raises(TypeError):
-        fcc.effective_isotropic_radiated_power(1000, 's', 100, 0)
+        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, 's', 100, 0))
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(1000, -3.1, 100, 0)
+        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, -3.1, 100, 0))
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(1000, 110, 50, 0)
+        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, 110, 50, 0))
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(1000, 100, 9999, 0)
+        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, 100, 9999, 0))
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(1000, 100, -50, 0)
+        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, 100, -50, 0))
     with pytest.raises(ValueError):
-        fcc.effective_isotropic_radiated_power(1000, -42, -50, 0)
+        fcc.effective_isotropic_radiated_power(fcc.PoweredAntenna(1000, -42, -50, 0))
 
 
 # Exemption ########

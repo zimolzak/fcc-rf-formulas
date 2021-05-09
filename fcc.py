@@ -16,14 +16,26 @@ REPORT_KEYS = ["Power density (mW/cm^2)",
                "Compliant uncontrolled"]
 
 
-def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
+class PoweredAntenna:
+    """Structure for representing an antenna with a certain gain, operating characteristics, and feed power
+
+    watts: Power seen at antenna feedpoint (*after* feedline loss)
+    t_average: Ranges 0 to 100, characteristic of how much you operate
+    duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
+    dbi: Gain relative to isotropic (decibels)
+    """
+    def __init__(self, watts, t_average, duty, dbi):
+        self.watts = watts
+        self.t_average = t_average
+        self.duty = duty
+        self.dbi = dbi
+
+
+def is_compliant(antenna, ft, mhz, ground_reflections, controlled):
     """Determine whether a given combination of (antenna, power, frequency, distance) is compliant in general, by a
     complete trial of methods. Either uses SAR exemption, MPE exemption, or evaluation.
 
-    :param float watts: Power seen at antenna feedpoint, *after* feedline loss (watts)
-    :param float t_average: Ranges 0 to 100, characteristic of how much you operate
-    :param float duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
-    :param float dbi: Gain relative to isotropic (decibels)
+    :param PoweredAntenna antenna:
     :param float ft: Distance from center of ANT to area of interest (feet)
     :param float mhz: Frequency of RF radiation (megahertz)
     :param bool ground_reflections: Whether to account for radiation coming from ground reflections
@@ -32,11 +44,11 @@ def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, contr
     :rtype: tuple
     """
     meters = ft * M_PER_FT
-    ex, method = is_exempt(watts, meters, mhz)  # fixme - might have to check power vs ERP vs EIRP
+    ex, method = is_exempt(antenna.watts, meters, mhz)  # fixme - might have to check power vs ERP vs EIRP
     if ex:
         return True, method
     else:
-        report = rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections)
+        report = rf_evaluation_report(antenna, ft, mhz, ground_reflections)
         if controlled:
             return report["Compliant controlled"], 'evaluation'
         else:
@@ -46,21 +58,18 @@ def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, contr
 # Evaluation functions ########
 
 
-def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
+def rf_evaluation_report(antenna, ft, mhz, ground_reflections):
     """Perform an RF evaluation of antenna/mode setup. Determine power density (mW/cm^2) given input power and distance,
     allowed power density, and compliant distances (controlled & uncontrolled environment).
 
-    :param float watts: Power seen at antenna feedpoint (*after* feedline loss)
-    :param float t_average: Ranges 0 to 100, characteristic of how much you operate
-    :param float duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
-    :param float dbi: Gain relative to isotropic (decibels)
+    :param PoweredAntenna antenna:
     :param float ft: Distance from center of ANT to area of interest (feet)
     :param float mhz: Frequency of RF radiation, (megahertz)
     :param bool ground_reflections: Whether to account for radiation coming from ground reflections
     :return: A dict describing power density (mW/cm^2), compliant distances (ft), and booleans describing compliance.
     :rtype: dict
     """
-    eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
+    eirp = effective_isotropic_radiated_power(antenna)
     s = power_density_mwcm2(eirp, ft, ground_reflections)
     s_c, s_u = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
     ft_c = compliant_distance_ft(reflection_constant(ground_reflections), eirp, s_c)
@@ -144,17 +153,18 @@ def reflection_constant(ground_reflections):
         return 1.6 * 1.6  # source: OET #65 pp. 20-21. EPA 520/6-85-011.
 
 
-def effective_isotropic_radiated_power(watts, t_average, duty, dbi):
+def effective_isotropic_radiated_power(antenna):
     """Calculate EIRP from feedpoint power, accounting for antenna gain and various time averaging of usage and mode.
 
-    :param float watts: Power seen at antenna feedpoint *after* feedline loss (watts)
-    :param float t_average: Ranges 0 to 100, characteristic of how much you operate
-    :param float duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
-    :param float dbi: Gain relative to isotropic (decibels)
+    :param PoweredAntenna antenna:
     :return: Effective isotropic radiated power (milliwatts, NOTE change in units)
     :rtype: float
     :raises ValueError: if t_average or duty are not valid percentages (0 - 100 inclusive)
     """
+    watts = antenna.watts
+    duty = antenna.duty
+    t_average = antenna.t_average
+    dbi = antenna.dbi
     if not (0 <= t_average <= 100 and 0 <= duty <= 100):
         raise ValueError("t_average / duty out of range: %s / %s" % (str(t_average), str(duty)))
     milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)

@@ -181,7 +181,8 @@ def test_exempt_watts_generic():
         [20 / 100, 7 * 1000],  # fails SAR
         [99 / 100, 99 * 1000],  # fails SAR
         [0.398, 120],  # 120 mhz no SAR. 39.8 cm dist, 250 cm wavelength
-        [0.16, 310]  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
+        [0.16, 310],  # the rare overlap. 310 mhz, 97 cm /2pi = 15.4 cm
+        [0.40, 1000]  # another overlap, even rarer MPE wins
     ]
     for k, v in pairs:
         w, s = fcc.exempt_watts_generic(k, v)  # throwaway

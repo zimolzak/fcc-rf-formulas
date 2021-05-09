@@ -110,6 +110,8 @@ http://hintlink.com/power_density.htm
  
 https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
 
+http://n6nb.com/rfsafetybasic.PDF
+
 
 ## Abbreviations/definitions
 

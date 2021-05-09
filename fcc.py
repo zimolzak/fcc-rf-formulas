@@ -10,7 +10,20 @@ M_PER_FT = CM_PER_FT / 100
 
 
 def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, controlled):
-    """Return a boolean and a string."""
+    """Determine whether a given combination of (antenna, power, frequency, distance) is compliant in general, by a
+    complete trial of methods. Either uses SAR exemption, MPE exemption, or evaluation.
+
+    :param float watts: Power seen at antenna feedpoint (*after* feedline loss)
+    :param float t_average: Ranges 0 to 100, characteristic of how much you operate
+    :param float duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
+    :param float dbi: Gain relative to isotropic
+    :param float ft: Distance from center of ANT to area of interest
+    :param float mhz: Frequency of RF radiation
+    :param bool ground_reflections: Whether to account for radiation coming from ground reflections
+    :param bool controlled: Whether the area of interest is controlled (occupational) or uncontrolled (public)
+    :return: A (bool, str) tuple of whether the setup is compliant, and a string describing the method used
+    :rtype: tuple
+    """
     meters = ft * M_PER_FT
     ex, method = is_exempt(watts, meters, mhz)  # fixme - might have to check power vs ERP vs EIRP
     if ex:
@@ -27,8 +40,18 @@ def is_compliant(watts, t_average, duty, dbi, ft, mhz, ground_reflections, contr
 
 
 def rf_evaluation_report(watts, t_average, duty, dbi, ft, mhz, ground_reflections):
-    """Report on power density (mW/cm^2) given input power and distance; and on compliant distances (controlled &
-    uncontrolled environment) given input power. Return a dict.
+    """Perform an RF evaluation of antenna/mode setup. Determine power density (mW/cm^2) given input power and distance,
+    allowed power density, and compliant distances (controlled & uncontrolled environment).
+    
+    :param float watts: Power seen at antenna feedpoint (*after* feedline loss)
+    :param float t_average: Ranges 0 to 100, characteristic of how much you operate
+    :param float duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
+    :param float dbi: Gain relative to isotropic
+    :param float ft: Distance from center of ANT to area of interest
+    :param float mhz: Frequency of RF radiation
+    :param bool ground_reflections: Whether to account for radiation coming from ground reflections
+    :return: A dict describing power density, compliant distances, and booleans describing compliance.
+    :rtype: dict
     """
     eirp = effective_isotropic_radiated_power(watts, t_average, duty, dbi)
     s = power_density_mwcm2(eirp, ft, ground_reflections)
@@ -78,7 +101,7 @@ def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
 
 
 def power_density_mwcm2(eirp_mw, ft, ground_reflections):
-    """Calculate power density (mW/cm^2) given input power (mW) and distance"""
+    """Calculate power density (mW/cm^2) given input power (mW) and distance. Based on area of sphere."""
     cm = ft * CM_PER_FT
     return reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * (cm ** 2))
 

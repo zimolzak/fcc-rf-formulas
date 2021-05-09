@@ -43,7 +43,7 @@ def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
                      "Distance controlled",
                      "Distance uncontrolled",
                      "Compliant controlled",
-                     "Compliant uncontrolled"]
+                     "Compliant uncontrolled"]  # pretty fragile
     report = fcc.rf_evaluation_report(pwr, 100, 100, gain, meters / M_PER_FT, mhz, ground)
     for i, k in enumerate(keys_in_order):
         assert report[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high

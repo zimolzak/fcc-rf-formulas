@@ -11,7 +11,6 @@ M_PER_FT = CM_PER_FT / 100
 
 class PoweredAntenna:
     """Structure for representing an antenna with a certain gain, operating characteristics, and feed power"""
-
     def __init__(self, watts: float, t_average: float, duty: float, dbi: float):
         """
         :param watts: Power seen at antenna feedpoint (*after* feedline loss)
@@ -27,7 +26,8 @@ class PoweredAntenna:
 
 class RFEvaluationReport:
     """Perform an RF evaluation of antenna/mode setup. Determine power density (mW/cm^2) given input power and distance,
-    allowed power density, and compliant distances (controlled & uncontrolled environment)."""
+    allowed power density, and compliant distances (controlled & uncontrolled environment).
+    """
     def __init__(self, antenna: PoweredAntenna, ft: float, mhz: float, ground_reflections: bool):
         """
         :param antenna:
@@ -61,17 +61,16 @@ Compliant controlled: %s
 Compliant uncontrolled: %s""" % self._calculation_list
 
 
-def is_compliant(antenna, ft, mhz, ground_reflections, controlled):
+def is_compliant(antenna: PoweredAntenna, ft: float, mhz: float, ground_reflections: bool, controlled: bool) -> tuple:
     """Determine whether a given combination of (antenna, power, frequency, distance) is compliant in general, by a
     complete trial of methods. Either uses SAR exemption, MPE exemption, or evaluation.
 
     :param PoweredAntenna antenna:
-    :param float ft: Distance from center of ANT to area of interest (feet)
-    :param float mhz: Frequency of RF radiation (megahertz)
-    :param bool ground_reflections: Whether to account for radiation coming from ground reflections
-    :param bool controlled: Whether the area of interest is controlled (occupational) or uncontrolled (public)
+    :param ft: Distance from center of ANT to area of interest (feet)
+    :param mhz: Frequency of RF radiation (megahertz)
+    :param ground_reflections: Whether to account for radiation coming from ground reflections
+    :param controlled: Whether the area of interest is controlled (occupational) or uncontrolled (public)
     :return: A (bool, str) tuple of whether the setup is compliant, and a string describing the method used
-    :rtype: tuple
     """
     meters = ft * M_PER_FT
     ex, method = is_exempt(antenna.watts, meters, mhz)  # fixme - might have to check power vs ERP vs EIRP
@@ -88,12 +87,11 @@ def is_compliant(antenna, ft, mhz, ground_reflections, controlled):
 # Evaluation functions ########
 
 
-def mpe_limits_cont_uncont_mwcm2(mhz):
+def mpe_limits_cont_uncont_mwcm2(mhz: float) -> list:
     """Determine maximum permissible exposure limits for RF, from FCC references.
 
-    :param float mhz: The radio frequency of interest (megahertz)
+    :param mhz: The radio frequency of interest (megahertz)
     :return: MPE limits (mW/cm^2) for controlled & uncontrolled environments, respectively
-    :rtype: list
     :raises ValueError: if mhz is out of range (cannot be found in the FCC lookup table)
     """
     if mhz <= 0:
@@ -114,39 +112,36 @@ def mpe_limits_cont_uncont_mwcm2(mhz):
         raise ValueError("frequency out of range: %s MHz" % str(mhz))
 
 
-def compliant_distance_ft(gf, eirp_mw, mpe_limit_mwcm2):
+def compliant_distance_ft(gf: float, eirp_mw: float, mpe_limit_mwcm2: float) -> float:
     """Calculate what distance from an antenna will comply with a maximum permissible exposure (power density) limit.
     Based on area of sphere.
 
-    :param float gf: A factor determining how much the RF is increased by ground reflections
-    :param float eirp_mw: Effective isotropic radiated power of the antenna (milliwatts)
-    :param float mpe_limit_mwcm2: MPE limit (milliwatts per square centimeter)
+    :param gf: A factor determining how much the RF is increased by ground reflections
+    :param eirp_mw: Effective isotropic radiated power of the antenna (milliwatts)
+    :param mpe_limit_mwcm2: MPE limit (milliwatts per square centimeter)
     :return: Compliant distance from antenna (feet)
-    :rtype: float
     """
     centimeters = math.sqrt(gf * eirp_mw / (4 * math.pi * mpe_limit_mwcm2))
     return centimeters / CM_PER_FT
 
 
-def power_density_mwcm2(eirp_mw, ft, ground_reflections):
+def power_density_mwcm2(eirp_mw: float, ft: float, ground_reflections: bool) -> float:
     """Calculate power density at a certain distance from an antenna. Based on area of sphere.
 
-    :param float eirp_mw: Effective isotropic radiated power of the antenna (milliwatts)
-    :param float ft: Distance from antenna (feet)
-    :param bool ground_reflections: Whether to account for ground reflections
+    :param eirp_mw: Effective isotropic radiated power of the antenna (milliwatts)
+    :param ft: Distance from antenna (feet)
+    :param ground_reflections: Whether to account for ground reflections
     :return: Power density (milliwatts per square centimeter)
-    :rtype: float
     """
     cm = ft * CM_PER_FT
     return reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * (cm ** 2))
 
 
-def reflection_constant(ground_reflections):
+def reflection_constant(ground_reflections: bool) -> float:
     """Utility function to calculate a factor that describes how much RF is increased by ground reflection.
 
-    :param bool ground_reflections: Whether ground reflections are present
+    :param ground_reflections: Whether ground reflections are present
     :return: Coefficient (dimensionless) that other functions use to multiply EIRP
-    :rtype: float
     :raises ValueError: if ground_reflections is not bool
     """
     if type(ground_reflections) != bool:
@@ -157,12 +152,11 @@ def reflection_constant(ground_reflections):
         return 1.6 * 1.6  # source: OET #65 pp. 20-21. EPA 520/6-85-011.
 
 
-def effective_isotropic_radiated_power(antenna):
+def effective_isotropic_radiated_power(antenna: PoweredAntenna) -> float:
     """Calculate EIRP from feedpoint power, accounting for antenna gain and various time averaging of usage and mode.
 
-    :param PoweredAntenna antenna:
+    :param antenna:
     :return: Effective isotropic radiated power (milliwatts, NOTE change in units)
-    :rtype: float
     :raises ValueError: if t_average or duty are not valid percentages (0 - 100 inclusive)
     """
     watts = antenna.watts
@@ -182,15 +176,14 @@ class RFEvaluationError(ValueError):
     pass
 
 
-def is_exempt(watts, meters, mhz):
+def is_exempt(watts: float, meters: float, mhz: float) -> tuple:
     """Determine via either MPE or SAR method whether a given power and frequency are exempt at a given distance.
     Not the same as RF evaluation.
 
-    :param float watts: Power
-    :param float meters: Distance from antenna to person (meters)
-    :param float mhz: Frequency of the RF (megahertz)
+    :param watts: Power
+    :param meters: Distance from antenna to person (meters)
+    :param mhz: Frequency of the RF (megahertz)
     :return: A (bool, str) tuple stating whether this setup is exempt from evaluation, and the reason why / why not.
-    :rtype: tuple
     """
     try:
         threshold, method = exempt_watts_generic(meters, mhz)
@@ -200,13 +193,12 @@ def is_exempt(watts, meters, mhz):
     # Do not catch general ValueError, which means mhz may be out of range.
 
 
-def exempt_watts_generic(meters, mhz):
+def exempt_watts_generic(meters: float, mhz: float) -> tuple:
     """Try both SAR and MPE exemption methods to find the best exemption threshold.
 
-    :param float meters: Distance from antenna to person (meters)
-    :param float mhz: Frequency of the RF (megahertz)
+    :param meters: Distance from antenna to person (meters)
+    :param mhz: Frequency of the RF (megahertz)
     :return: A (float, str) tuple stating the threshold (watts) and exemption method used
-    :rtype: tuple
     """
     try:
         p_th = exempt_milliwatts_sar(meters * 100, mhz / 1000) / 1000
@@ -223,15 +215,14 @@ def exempt_watts_generic(meters, mhz):
         return erp_th, 'MPE wins'
 
 
-def exempt_milliwatts_sar(cm, ghz):
+def exempt_milliwatts_sar(cm: float, ghz: float) -> float:
     """Calculate power threshold for exemption from routine radio frequency exposure evaluation. Note: narrow range
     of applicable frequencies. FCC formula is "based on localized specific absorption rate (SAR) limits." Source: FCC
     19-126 p.23
 
-    :param float cm: Distance from antenna to person (centimeters)
-    :param float ghz: Frequency of RF source (gigahertz, NOTE different unit from other functions)
+    :param cm: Distance from antenna to person (centimeters)
+    :param ghz: Frequency of RF source (gigahertz, NOTE different unit from other functions)
     :return: time-averaged power threshold for exemption (milliwatts)
-    :rtype: float
     :raises ValueError: if frequency or distance out of range (0.3 - 6 GHz; 0 - 40 cm)
     """
     if 0.3 <= ghz < 1.5:
@@ -250,14 +241,13 @@ def exempt_milliwatts_sar(cm, ghz):
     return p_threshold
 
 
-def exempt_watts_mpe(meters, mhz):
+def exempt_watts_mpe(meters: float, mhz: float) -> float:
     """Calculate the effective radiated power threshold for exemption (exemption from RF exposure evaluation),
     using the maximum permissible exposure (MPE) method. Formulas based on FCC 19-126, Table 2, p. 26.
 
-    :param float meters: Distance from source to area of interest (meters)
-    :param float mhz: Frequency of the source (megahertz)
+    :param meters: Distance from source to area of interest (meters)
+    :param mhz: Frequency of the source (megahertz)
     :return: ERP threshold for exemption (watts)
-    :rtype: float
     :raises RFEvaluationError: if distance is within "near field" (wavelength / (2*pi)), which triggers formal RF eval.
     :raises ValueError: if mhz is out of range (0.3 MHz - 100,000 MHz)
     """

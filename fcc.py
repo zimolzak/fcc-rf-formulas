@@ -17,14 +17,15 @@ REPORT_KEYS = ["Power density (mW/cm^2)",
 
 
 class PoweredAntenna:
-    """Structure for representing an antenna with a certain gain, operating characteristics, and feed power
+    """Structure for representing an antenna with a certain gain, operating characteristics, and feed power"""
 
-    watts: Power seen at antenna feedpoint (*after* feedline loss)
-    t_average: Ranges 0 to 100, characteristic of how much you operate
-    duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
-    dbi: Gain relative to isotropic (decibels)
-    """
-    def __init__(self, watts, t_average, duty, dbi):
+    def __init__(self, watts: float, t_average: float, duty: float, dbi: float):
+        """
+        :param watts: Power seen at antenna feedpoint (*after* feedline loss)
+        :param t_average: Ranges 0 to 100, characteristic of how much you operate
+        :param duty: Ranges 0 to 100, characteristic of the mode such as FM vs SSB
+        :param dbi: Gain relative to isotropic (decibels)
+        """
         self.watts = watts
         self.t_average = t_average
         self.duty = duty

@@ -4,6 +4,7 @@
 # https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
 
 import math
+import inspect
 
 CM_PER_FT = 30.48
 M_PER_FT = CM_PER_FT / 100
@@ -56,13 +57,14 @@ class RFEvaluationReport:
                                   self.compliant_c, self.compliant_u)  # tuple in specific order, for testing
 
     def __str__(self):
-        return """Power density (mW/cm^2): %s
-MPE controlled (mW/cm^2): %s
-MPE uncontrolled (mW/cm^2): %s
-Distance controlled (ft): %s
-Distance uncontrolled (ft): %s
-Compliant controlled: %s
-Compliant uncontrolled: %s""" % self._calculation_list
+        template = """Power density (mW/cm^2): %s
+        MPE controlled (mW/cm^2): %s
+        MPE uncontrolled (mW/cm^2): %s
+        Distance controlled (ft): %s
+        Distance uncontrolled (ft): %s
+        Compliant controlled: %s
+        Compliant uncontrolled: %s"""
+        return inspect.cleandoc(template) % self._calculation_list
 
 
 def is_compliant(antenna: PoweredAntenna, ft: float, mhz: float, ground_reflections: bool, controlled: bool) -> tuple:

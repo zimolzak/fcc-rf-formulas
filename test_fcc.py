@@ -50,10 +50,10 @@ def test_is_compliant():
 def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
     ant = fcc.PoweredAntenna(pwr, 100, 100, gain)
     report = fcc.RFEvaluationReport(ant, meters / M_PER_FT, mhz, ground)
-    ant_r = ant.__repr__()
-    ant_s = ant.__str__()
-    rpt_r = report.__repr__()
-    rpt_s = report.__str__()
+    ant_r = repr(ant)
+    ant_s = str(ant)
+    rpt_r = repr(report)
+    rpt_s = str(report)
     for i, v in enumerate(report._calculation_list):
         assert v == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
 

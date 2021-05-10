@@ -32,6 +32,9 @@ class PoweredAntenna:
     def __repr__(self):
         return "PoweredAntenna(%f, %f, %f, %f)" % (self.watts, self.t_average, self.duty, self.dbi)
 
+    def __str__(self):
+        return "Powered Antenna: %s W, %s%% time, %s%% duty, %s dBi" % (self.watts, self.t_average, self.duty, self.dbi)
+
 
 class RFEvaluationReport:
     """Perform an RF evaluation of antenna/mode setup. Determine power density (mW/cm^2) given input power and distance,

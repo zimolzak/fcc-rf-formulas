@@ -59,8 +59,6 @@ class RFEvaluationReport:
         self.ft_u = compliant_distance_ft(k, antenna.effective_isotropic_radiated_power, self.power_density_u)
         self.compliant_c = self.power_density < self.power_density_c
         self.compliant_u = self.power_density < self.power_density_u
-        self._calculation_list = (self.power_density, self.power_density_c, self.power_density_u, self.ft_c, self.ft_u,
-                                  self.compliant_c, self.compliant_u)  # tuple in specific order, for testing
 
     def __repr__(self):
         return "RFEvaluationReport(%s, %f, %f, %s)" % (repr(self.antenna), self.ft, self.mhz, self.ground_reflections)
@@ -73,7 +71,8 @@ class RFEvaluationReport:
         Distance uncontrolled (ft): %s
         Compliant controlled: %s
         Compliant uncontrolled: %s"""
-        return inspect.cleandoc(template) % self._calculation_list
+        return inspect.cleandoc(template) % (self.power_density, self.power_density_c, self.power_density_u,
+                                             self.ft_c, self.ft_u, self.compliant_c, self.compliant_u)
 
 
 def is_compliant(antenna: PoweredAntenna, ft: float, mhz: float, ground_reflections: bool, controlled: bool) -> tuple:

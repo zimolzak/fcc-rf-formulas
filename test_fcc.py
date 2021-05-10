@@ -50,12 +50,15 @@ def test_is_compliant():
 def one_web(pwr, gain, meters, mhz, ground, expected, rel=0.05):
     ant = fcc.PoweredAntenna(pwr, 100, 100, gain)
     report = fcc.RFEvaluationReport(ant, meters / M_PER_FT, mhz, ground)
+    # throwaways
     ant_r = repr(ant)
     ant_s = str(ant)
     rpt_r = repr(report)
     rpt_s = str(report)
-    for i, v in enumerate(report._calculation_list):
-        assert v == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
+    # assertions
+    keys_in_order = "power_density power_density_c power_density_u ft_c ft_u compliant_c compliant_u".split()
+    for i, k in enumerate(keys_in_order):
+        assert report.__dict__[k] == pytest.approx(expected[i], rel=rel)  # percentage is surprisingly high
 
 
 def test_rf_evaluation_report():
@@ -132,7 +135,8 @@ def test_effective_isotropic_radiated_power():
         assert w * 1000 * 10 == fcc.PoweredAntenna(w, 100, 100, 10).effective_isotropic_radiated_power  # 10 dB gain
         n += 1
     for w in range(1, 20):
-        assert w * 1000 == fcc.PoweredAntenna(w, 10, 10, 20).effective_isotropic_radiated_power  # 20 dB, canceled by * 0.1 * 0.1
+        assert w * 1000 == fcc.PoweredAntenna(w, 10, 10,
+                                              20).effective_isotropic_radiated_power  # 20 dB, canceled by * 0.1 * 0.1
         n += 1
     print("\n    Looped %d tests of EIRP." % n, end='')
     with pytest.raises(TypeError):

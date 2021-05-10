@@ -29,6 +29,9 @@ class PoweredAntenna:
         milliwatts_average = 1000 * watts * (t_average / 100) * (duty / 100)
         self.effective_isotropic_radiated_power = milliwatts_average * (10 ** (dbi / 10))
 
+    def __repr__(self):
+        return "PoweredAntenna(%f, %f, %f, %f)" % (self.watts, self.t_average, self.duty, self.dbi)
+
 
 class RFEvaluationReport:
     """Perform an RF evaluation of antenna/mode setup. Determine power density (mW/cm^2) given input power and distance,
@@ -55,6 +58,9 @@ class RFEvaluationReport:
         self.compliant_u = self.power_density < self.power_density_u
         self._calculation_list = (self.power_density, self.power_density_c, self.power_density_u, self.ft_c, self.ft_u,
                                   self.compliant_c, self.compliant_u)  # tuple in specific order, for testing
+
+    def __repr__(self):
+        return "RFEvaluationReport(%s, %f, %f, %s)" % (repr(self.antenna), self.ft, self.mhz, self.ground_reflections)
 
     def __str__(self):
         template = """Power density (mW/cm^2): %s

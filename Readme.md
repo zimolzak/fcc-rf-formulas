@@ -10,50 +10,45 @@ radiofrequency electromagnetic fields. FCC rule changes go into effect on May
 ```python
 import fcc
 
-ssb150 = fcc.PoweredAntenna(watts=150, t_average=50, duty=20, dbi=2.2)
-ssb100 = fcc.PoweredAntenna(watts=100, t_average=50, duty=20, dbi=2.2)
-little = fcc.PoweredAntenna(watts=0.031, t_average=100, duty=100, dbi=0)
-
-fcc.is_compliant(ssb150, ft=300, mhz=29, ground_reflections=True, controlled=False)  # SSB phone dipole 300 ft away
+dipole_ssb_phone = fcc.PoweredAntenna(watts=100, t_average=50, duty=20, dbi=2.2)
+fcc.is_compliant(dipole_ssb_phone, ft=300, mhz=29, ground_reflections=True, controlled=False)  # very far
 # (True, 'MPE')
+fcc.is_compliant(dipole_ssb_phone, ft=3, mhz=29, ground_reflections=True, controlled=True)  # closer
+# (True, 'evaluation')
+fcc.is_compliant(dipole_ssb_phone, ft=1, mhz=29, ground_reflections=True, controlled=True)  # too close
+# (False, 'evaluation')
 
-fcc.is_compliant(little, ft=1/12/2.54, mhz=300, ground_reflections=True, controlled=False)  # 31 mW source nearby
+little_source = fcc.PoweredAntenna(watts=0.031, t_average=100, duty=100, dbi=0)
+fcc.is_compliant(little_source, ft=1/12/2.54, mhz=300, ground_reflections=True, controlled=False)  # quite nearby
 # (True, 'SAR')
 
-fcc.is_compliant(ssb100, ft=3, mhz=30, ground_reflections=True, controlled=True)  # SSB phone dipole 3 ft away, controlled
-# (True, 'evaluation')
-
-fcc.is_compliant(ssb100, ft=1, mhz=30, ground_reflections=True, controlled=True)  # SSB phone dipole 1 ft away, controlled
-# (False, 'evaluation')
 ```
 
-The arguments to the function (first execution) mean (in order): 150 W at feedpoint, 50% usage, a mode with 20% duty
+The arguments to the first example mean (in order): 100 W at feedpoint, 50% usage, a mode with 20% duty
 (like SSB), 2.2 dBi gain (like a dipole), distance of 300 feet from antenna, 29 MHz, with ground reflection, and
 uncontrolled environment. The return value tells you whether you are in compliance (True/False), **and** the means by
 which compliance was determined (SAR exemption, MPE exemption, or full evaluation).
 
 ```python
-import fcc
-ssb60 = fcc.PoweredAntenna(watts=60, t_average=50, duty=20, dbi=2.2)
-
-print(fcc.RFEvaluationReport(ssb60, ft=6, mhz=29, ground_reflections=True))
-# Power density (mW/cm^2): 0.06065253059459946
+print(fcc.RFEvaluationReport(dipole_ssb_phone, ft=6, mhz=29, ground_reflections=True))
+# Power density (mW/cm^2): 0.1010875509909991
 # MPE controlled (mW/cm^2): 1.070154577883472
 # MPE uncontrolled (mW/cm^2): 0.2140309155766944
-# Distance controlled (ft): 1.428408600226954
-# Distance uncontrolled (ft): 3.194018729752791
+# Distance controlled (ft): 1.84406757341948
+# Distance uncontrolled (ft): 4.123460449269042
 # Compliant controlled: True
 # Compliant uncontrolled: True
 ```
 
-The function arguments mean (in order): 60 W at feedpoint, 50% usage, a mode with 20% duty (like SSB), 2.2 dBi gain
-(like a dipole), distance of 6 feet from antenna, 29 MHz, and with ground reflection.
+This `RFEvaluationrReport` class takes very similar parameters to the `is_compliant()` function above, but it does
+*only* evaluation (not trying for exemptions) and also gives you more details. It covers both controlled & uncontrolled
+environments, so there is no parameter to specify this.
 
 
 ## Other useful examples
 
 ```python
-fcc.exempt_milliwatts_sar(1, 0.45)
+fcc.exempt_milliwatts_sar(cm=1, ghz=0.45)
 # 44.372516027834514
 ```
 

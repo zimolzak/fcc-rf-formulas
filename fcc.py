@@ -1,8 +1,3 @@
-# Adapted from original public domain BASIC by Wayne Overbeck N6NB, published 1996-2021.
-# http://n6nb.com/rfsafetybasic.PDF . Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF. That page
-# runs on public domain PHP by W4/VP9KF. Ultimate source is FCC OET Bulletin 65, Aug 1997.
-# https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
-
 import math
 import inspect
 
@@ -34,6 +29,29 @@ class PoweredAntenna:
 
     def __str__(self):
         return "Powered Antenna: %s W, %s%% time, %s%% duty, %s dBi" % (self.watts, self.t_average, self.duty, self.dbi)
+
+
+def is_compliant(antenna: PoweredAntenna, ft: float, mhz: float, ground_reflections: bool, controlled: bool) -> tuple:
+    """Determine whether a given combination of (antenna, power, frequency, distance) is compliant in general, by a
+    complete trial of methods. Either uses SAR exemption, MPE exemption, or evaluation.
+
+    :param PoweredAntenna antenna:
+    :param ft: Distance from center of ANT to area of interest (feet)
+    :param mhz: Frequency of RF radiation (megahertz)
+    :param ground_reflections: Whether to account for radiation coming from ground reflections
+    :param controlled: Whether the area of interest is controlled (occupational) or uncontrolled (public)
+    :return: A (bool, str) tuple of whether the setup is compliant, and a string describing the method used
+    """
+    meters = ft * M_PER_FT
+    ex, method = is_exempt(antenna.watts, meters, mhz)
+    if ex:
+        return True, method
+    else:
+        report = RFEvaluationReport(antenna, ft, mhz, ground_reflections)
+        if controlled:
+            return report.compliant_c, 'evaluation'
+        else:
+            return report.compliant_u, 'evaluation'
 
 
 class RFEvaluationReport:
@@ -75,30 +93,11 @@ class RFEvaluationReport:
                                              self.ft_c, self.ft_u, self.compliant_c, self.compliant_u)
 
 
-def is_compliant(antenna: PoweredAntenna, ft: float, mhz: float, ground_reflections: bool, controlled: bool) -> tuple:
-    """Determine whether a given combination of (antenna, power, frequency, distance) is compliant in general, by a
-    complete trial of methods. Either uses SAR exemption, MPE exemption, or evaluation.
-
-    :param PoweredAntenna antenna:
-    :param ft: Distance from center of ANT to area of interest (feet)
-    :param mhz: Frequency of RF radiation (megahertz)
-    :param ground_reflections: Whether to account for radiation coming from ground reflections
-    :param controlled: Whether the area of interest is controlled (occupational) or uncontrolled (public)
-    :return: A (bool, str) tuple of whether the setup is compliant, and a string describing the method used
-    """
-    meters = ft * M_PER_FT
-    ex, method = is_exempt(antenna.watts, meters, mhz)  # fixme - might have to check power vs ERP vs EIRP
-    if ex:
-        return True, method
-    else:
-        report = RFEvaluationReport(antenna, ft, mhz, ground_reflections)
-        if controlled:
-            return report.compliant_c, 'evaluation'
-        else:
-            return report.compliant_u, 'evaluation'
-
-
 # Evaluation functions ########
+# Adapted from original public domain BASIC by Wayne Overbeck N6NB, published 1996-2021.
+# http://n6nb.com/rfsafetybasic.PDF . Compare to http://hintlink.com/power_density.htm by Paul Evans VP9KF. That page
+# runs on public domain PHP by W4/VP9KF. Ultimate source is FCC OET Bulletin 65, Aug 1997.
+# https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
 
 
 def mpe_limits_cont_uncont_mwcm2(mhz: float) -> list:

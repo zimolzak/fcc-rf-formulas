@@ -10,20 +10,20 @@ radiofrequency electromagnetic fields. FCC rule changes go into effect on May
 ```python
 import fcc
 
-ssb150 = fcc.PoweredAntenna(150, 50, 20, 2.2)
-ssb100 = fcc.PoweredAntenna(100, 50, 20, 2.2)
-little = fcc.PoweredAntenna(0.031, 100, 100, 0)
+ssb150 = fcc.PoweredAntenna(watts=150, t_average=50, duty=20, dbi=2.2)
+ssb100 = fcc.PoweredAntenna(watts=100, t_average=50, duty=20, dbi=2.2)
+little = fcc.PoweredAntenna(watts=0.031, t_average=100, duty=100, dbi=0)
 
-fcc.is_compliant(ssb150, 300, 29, True, False)  # SSB phone dipole 300 ft away
+fcc.is_compliant(ssb150, ft=300, mhz=29, ground_reflections=True, controlled=False)  # SSB phone dipole 300 ft away
 # (True, 'MPE')
 
-fcc.is_compliant(little, 1/12/2.54, 300, True, False)  # 31 mW source nearby
+fcc.is_compliant(little, ft=1/12/2.54, mhz=300, ground_reflections=True, controlled=False)  # 31 mW source nearby
 # (True, 'SAR')
 
-fcc.is_compliant(ssb100, 3, 30, True, True)  # SSB phone dipole 3 ft away, controlled
+fcc.is_compliant(ssb100, ft=3, mhz=30, ground_reflections=True, controlled=True)  # SSB phone dipole 3 ft away, controlled
 # (True, 'evaluation')
 
-fcc.is_compliant(ssb100, 1, 30, True, True)  # SSB phone dipole 1 ft away, controlled
+fcc.is_compliant(ssb100, ft=1, mhz=30, ground_reflections=True, controlled=True)  # SSB phone dipole 1 ft away, controlled
 # (False, 'evaluation')
 ```
 
@@ -34,9 +34,9 @@ which compliance was determined (SAR exemption, MPE exemption, or full evaluatio
 
 ```python
 import fcc
-ssb60 = fcc.PoweredAntenna(60, 50, 20, 2.2)
+ssb60 = fcc.PoweredAntenna(watts=60, t_average=50, duty=20, dbi=2.2)
 
-print(fcc.RFEvaluationReport(ssb60, 6, 29, True))
+print(fcc.RFEvaluationReport(ssb60, ft=6, mhz=29, ground_reflections=True))
 # Power density (mW/cm^2): 0.06065253059459946
 # MPE controlled (mW/cm^2): 1.070154577883472
 # MPE uncontrolled (mW/cm^2): 0.2140309155766944
@@ -65,7 +65,7 @@ is no more than" **44.4 milliwatts.** This method of exemption only
 applies to UHF or higher, not VHF or HF.
 
 ```python
-fcc.exempt_watts_mpe(1, 444)
+fcc.exempt_watts_mpe(meters=1, mhz=444)
 # 5.6832
 ```
 
@@ -77,11 +77,11 @@ watts.** If the radiator is closer than a certain cutoff distance,
 exemption works over a much broader range of frequencies.
 
 ```python
-fcc.exempt_watts_generic(0.01, 450)
+fcc.exempt_watts_generic(meters=0.01, mhz=450)
 # (0.04437251602783451, 'SAR')
-fcc.exempt_watts_generic(1, 444)
+fcc.exempt_watts_generic(meters=1, mhz=444)
 # (5.6832, 'MPE')
-fcc.exempt_watts_generic(0.16, 310)
+fcc.exempt_watts_generic(meters=0.16, mhz=310)
 # (0.5327389333009732, 'SAR wins')
 ```
 

@@ -96,7 +96,7 @@ def test_inverses():
     for feet in range(1, 300, 11):
         for milliwatts in range(100, 1000 * 100, 1131):
             density = fcc.power_density_mwcm2(milliwatts, feet, False)
-            calc_feet = fcc.compliant_distance_ft(1, milliwatts, density)
+            calc_feet = fcc.compliant_distance_ft(milliwatts, density, False)
             assert feet == pytest.approx(calc_feet)
             n += 1
     print("\n    Looped %d tests of inverses." % n, end='')

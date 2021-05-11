@@ -72,9 +72,8 @@ class RFEvaluationReport:
         # Calculations
         self.power_density = power_density_mwcm2(antenna.effective_isotropic_radiated_power, ft, ground_reflections)
         self.power_density_c, self.power_density_u = mpe_limits_cont_uncont_mwcm2(mhz)  # mW/cm^2
-        k = reflection_constant(ground_reflections)
-        self.ft_c = compliant_distance_ft(k, antenna.effective_isotropic_radiated_power, self.power_density_c)
-        self.ft_u = compliant_distance_ft(k, antenna.effective_isotropic_radiated_power, self.power_density_u)
+        self.ft_c = compliant_distance_ft(antenna.effective_isotropic_radiated_power, self.power_density_c, ground_reflections)
+        self.ft_u = compliant_distance_ft(antenna.effective_isotropic_radiated_power, self.power_density_u, ground_reflections)
         self.compliant_c = self.power_density < self.power_density_c
         self.compliant_u = self.power_density < self.power_density_u
 
@@ -125,16 +124,16 @@ def mpe_limits_cont_uncont_mwcm2(mhz: float) -> list:
         raise ValueError("frequency out of range: %s MHz" % str(mhz))
 
 
-def compliant_distance_ft(gf: float, eirp_mw: float, mpe_limit_mwcm2: float) -> float:
+def compliant_distance_ft(eirp_mw: float, mpe_limit_mwcm2: float, ground_reflections: bool) -> float:
     """Calculate what distance from an antenna will comply with a maximum permissible exposure (power density) limit.
     Based on area of sphere.
 
-    :param gf: A factor determining how much the RF is increased by ground reflections
+    :param ground_reflections: Whether to account for ground reflections
     :param eirp_mw: Effective isotropic radiated power of the antenna (milliwatts)
     :param mpe_limit_mwcm2: MPE limit (milliwatts per square centimeter)
     :return: Compliant distance from antenna (feet)
     """
-    centimeters = math.sqrt(gf * eirp_mw / (4 * math.pi * mpe_limit_mwcm2))
+    centimeters = math.sqrt(reflection_constant(ground_reflections) * eirp_mw / (4 * math.pi * mpe_limit_mwcm2))
     return centimeters / CM_PER_FT
 
 

@@ -4,6 +4,7 @@ Python implementation of the FCC's formulas for human exposure to
 radiofrequency electromagnetic fields. FCC rule changes go into effect on May
 3, 2021.
 
+**If you prefer web-based** you can't do better than VP9KF: http://hintlink.com/power_density.htm
 
 ## Examples
 
@@ -100,6 +101,8 @@ computer code implementations so far.
 
 ## Links/references
 
+**VP9KF!** Best Web calculator: http://hintlink.com/power_density.htm
+
 https://docs.fcc.gov/public/attachments/FCC-19-126A1.pdf
 
 http://www.arrl.org/news/updated-radio-frequency-exposure-rules-become-effective-on-may-3
@@ -108,8 +111,6 @@ Hare, Ed (W1RFI). *RF Exposure and You.* 1st ed., American Radio Relay
 League, 1998-2003. This is a perfectly lovely book.
 http://www.arrl.org/files/file/Technology/RFsafetyCommittee/RF+Exposure+and+You.pdf
 
-http://hintlink.com/power_density.htm
- 
 https://transition.fcc.gov/Bureaus/Engineering_Technology/Documents/bulletins/oet65/oet65.pdf
 
 http://n6nb.com/rfsafetybasic.PDF

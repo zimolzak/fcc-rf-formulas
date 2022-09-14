@@ -1,12 +1,18 @@
 # Formulas for RF Exposure
 
 Python implementation of the FCC's formulas for human exposure to
-radiofrequency electromagnetic fields. FCC rule changes go into effect on May
-3, 2021.
+radiofrequency electromagnetic fields. FCC rule changes go into effect
+on May 3, 2021.
 
-**If you prefer web-based** you can't do better than VP9KF: http://hintlink.com/power_density.htm
+**If you prefer web-based** you can't do better than VP9KF:
+  http://hintlink.com/power_density.htm
 
-## Examples
+
+
+
+# Main examples
+
+## Is it compliant?
 
 ```python
 import fcc
@@ -22,13 +28,20 @@ fcc.is_compliant(dipole_ssb_phone, ft=1, mhz=29, ground_reflections=True, contro
 little_source = fcc.PoweredAntenna(watts=0.031, t_average=100, duty=100, dbi=0)
 fcc.is_compliant(little_source, ft=1/12/2.54, mhz=300, ground_reflections=True, controlled=False)  # quite nearby
 # (True, 'SAR')
-
 ```
 
-The arguments to the first example mean (in order): 100 W at feedpoint, 50% usage, a mode with 20% duty
-(like SSB), 2.2 dBi gain (like a dipole), distance of 300 feet from antenna, 29 MHz, with ground reflection, and
-uncontrolled environment. The return value tells you whether you are in compliance (True/False), **and** the means by
-which compliance was determined (SAR exemption, MPE exemption, or full evaluation).
+The arguments to the first example mean (in order): 100 W at
+feedpoint, 50% usage, a mode with 20% duty (like SSB), 2.2 dBi gain
+(like a dipole), distance of 300 feet from antenna, 29 MHz, with
+ground reflection, and uncontrolled environment. The return value
+tells you whether you are in compliance (True/False), **and** the
+means by which compliance was determined (SAR exemption, MPE
+exemption, or full evaluation).
+
+
+
+
+## Do an RF evaluation
 
 ```python
 print(fcc.RFEvaluationReport(dipole_ssb_phone, ft=6, mhz=29, ground_reflections=True))
@@ -41,12 +54,18 @@ print(fcc.RFEvaluationReport(dipole_ssb_phone, ft=6, mhz=29, ground_reflections=
 # Compliant uncontrolled: True
 ```
 
-This `RFEvaluationrReport` class takes very similar parameters to the `is_compliant()` function above, but it does
-*only* evaluation (not trying for exemptions) and also gives you more details. It covers both controlled & uncontrolled
-environments, so there is no parameter to specify this.
+This `RFEvaluationrReport` class takes very similar parameters to the
+`is_compliant()` function above, but it does *only* evaluation (not
+trying for exemptions) and also gives you more details. It covers both
+controlled & uncontrolled environments, so there is no parameter to
+specify this.
 
 
-## Other useful examples
+
+
+# Less common examples
+
+## What power is exempt by SAR?
 
 ```python
 fcc.exempt_milliwatts_sar(cm=1, ghz=0.45)
@@ -60,6 +79,11 @@ MHz) source, which is 1 cm away, you get a SAR-based exemption if
 is no more than" **44.4 milliwatts.** This method of exemption only
 applies to UHF or higher, not VHF or HF.
 
+
+
+
+## What power is exempt by MPE?
+
 ```python
 fcc.exempt_watts_mpe(meters=1, mhz=444)
 # 5.6832
@@ -71,6 +95,11 @@ which is 1 meter away is exempt if its ERP is no more than **5.7
 watts.** If the radiator is closer than a certain cutoff distance,
 "evaluation is required" (p. 25, footnote 143). This method of
 exemption works over a much broader range of frequencies.
+
+
+
+
+## What power is exempt, generally?
 
 ```python
 fcc.exempt_watts_generic(meters=0.01, mhz=450)
@@ -87,6 +116,10 @@ available.
 Mind your units! They may be different between some function arguments and
 return values.
 
+
+
+
+# Conclusion
 
 ## Context
 

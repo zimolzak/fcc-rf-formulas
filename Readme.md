@@ -54,7 +54,7 @@ print(fcc.RFEvaluationReport(dipole_ssb_phone, ft=6, mhz=29, ground_reflections=
 # Compliant uncontrolled: True
 ```
 
-This `RFEvaluationrReport` class takes very similar parameters to the
+This `RFEvaluationReport` class takes very similar parameters to the
 `is_compliant()` function above, but it does *only* evaluation (not
 trying for exemptions) and also gives you more details. It covers both
 controlled & uncontrolled environments, so there is no parameter to
